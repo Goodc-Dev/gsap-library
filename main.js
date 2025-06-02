@@ -127,8 +127,8 @@ function initHoverOverlayAnimations() {
 function initHoverScaleAnimations() {
   const links = document.querySelectorAll(".gasp-hover-scale-up");
   links.forEach((link) => {
-    link.style.transformOrigin = "center center";
-
+    link.style.transformOrigin = "left center";
+    
     link.addEventListener("mouseenter", () => {
       gsap.to(link, {
         scale: 1.1,
