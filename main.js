@@ -44,17 +44,32 @@ function initSlideInAnimations() {
 // ------------------------------------------------------
 // Inicjalizacja animacji “counter” (klasa .gsap-counter)
 // ------------------------------------------------------
+// Uniwersalny skrypt: wyciąga pierwszą wartość liczbową z treści elementu,
+// a wszelkie prefiksy lub sufiksy (np. tekst "lat", "%" itp.) pozostawia.
+// ------------------------------------------------------
 function initCounterAnimations() {
   const counters = document.querySelectorAll(".gsap-counter");
+
   counters.forEach((elem) => {
-    // Pobranie docelowej wartości z tekstu elementu
-    const endValue = parseInt(elem.textContent, 10);
+    const text = elem.textContent.trim();
+    // Znajdź pierwsze wystąpienie cyfry (ciąg cyfr)
+    const match = text.match(/(\d+)/);
+    if (!match) return; // brak liczby → pomiń
+
+    const numberString = match[1];           // np. "30"
+    const endValue = parseInt(numberString, 10);
     if (isNaN(endValue)) return;
 
-    // Ustawienie początkowego tekstu na "0"
-    elem.textContent = "0";
+    // Podzielmy oryginalny tekst na prefiks, liczbę i sufiks:
+    const indexStart = match.index;
+    const indexEnd = indexStart + numberString.length;
+    const prefix = text.slice(0, indexStart);   // np. ""
+    const suffix = text.slice(indexEnd);        // np. " lat"
 
-    // Obiekt pomocniczy, który GSAP tweenuje
+    // Ustaw początkowy widok (z zostawionym prefixem i suffixem, a liczbą "0")
+    elem.textContent = prefix + "0" + suffix;
+
+    // Obiekt pomocniczy do tweenowania
     const obj = { value: 0 };
 
     gsap.to(obj, {
@@ -68,10 +83,11 @@ function initCounterAnimations() {
         // markers: true // odkomentuj, aby zobaczyć markery w DevTools
       },
       onUpdate: () => {
-        elem.textContent = Math.floor(obj.value);
+        const current = Math.floor(obj.value);
+        elem.textContent = prefix + current + suffix;
       },
       onComplete: () => {
-        elem.textContent = endValue;
+        elem.textContent = prefix + endValue + suffix;
       }
     });
   });
