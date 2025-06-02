@@ -149,15 +149,27 @@ function initHoverScaleAnimations() {
 // ------------------------------------------------------
 // Inicjalizacja animacji “underline from left” (klasa .gasp-underline)
 // ------------------------------------------------------
+// Nie zmieniamy display całego linku – owijamy tekst w span o szerokości tekstu.
+// ------------------------------------------------------
 function initUnderlineAnimations() {
   const links = document.querySelectorAll(".gasp-underline");
 
   links.forEach((link) => {
-    // 1. Ustaw link jako inline-block i position: relative
-    link.style.display = "inline-block";
-    link.style.position = "relative";
+    // 1. Pobierz oryginalny tekst linku (zakładamy, że link zawiera tylko tekst, np. "Zabiegi")
+    const text = link.textContent.trim();
+    if (!text) return;
 
-    // 2. Stwórz element <span> na underline
+    // 2. Wyczyść zawartość linku
+    link.textContent = "";
+
+    // 3. Stwórz <span> do owinięcia tekstu (będzie miał szerokość tekstu)
+    const textSpan = document.createElement("span");
+    textSpan.textContent = text;
+    // Ustaw inline‐block, by span miał szerokość zawartości tekstu:
+    textSpan.style.display = "inline-block";
+    textSpan.style.position = "relative"; // potrzebne, żeby underline się odnosiło do tego spanu
+
+    // 4. Stwórz <span> dla underline
     const underline = document.createElement("span");
     underline.style.position = "absolute";
     underline.style.bottom = "0";
@@ -167,10 +179,11 @@ function initUnderlineAnimations() {
     underline.style.backgroundColor = "currentColor";
     underline.style.pointerEvents = "none";
 
-    // 3. Dodaj underline do linka
-    link.appendChild(underline);
+    // 5. Włóż underline do textSpan, a textSpan do linku
+    textSpan.appendChild(underline);
+    link.appendChild(textSpan);
 
-    // 4. Animacja na hover
+    // 6. Animacja GSAP na hover linku (całego <a>)
     link.addEventListener("mouseenter", () => {
       gsap.to(underline, {
         width: "100%",
