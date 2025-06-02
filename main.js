@@ -138,6 +138,32 @@ function initHoverOverlayAnimations() {
 }
 
 // ------------------------------------------------------
+// Inicjalizacja animacji “hover scale” (klasa .footer-link)
+// ------------------------------------------------------
+function initHoverScaleAnimations() {
+  const links = document.querySelectorAll(".footer-link");
+  links.forEach((link) => {
+    // Ustaw transform-origin w CSS lub tutaj programowo:
+    link.style.transformOrigin = "center center";
+
+    link.addEventListener("mouseenter", () => {
+      gsap.to(link, {
+        scale: 1.1,
+        duration: 0.2,
+        ease: "power2.out"
+      });
+    });
+    link.addEventListener("mouseleave", () => {
+      gsap.to(link, {
+        scale: 1,
+        duration: 0.2,
+        ease: "power2.in"
+      });
+    });
+  });
+}
+
+// ------------------------------------------------------
 // Główna funkcja inicjalizująca wszystkie animacje
 // ------------------------------------------------------
 function initAnimations() {
@@ -145,6 +171,7 @@ function initAnimations() {
   initSlideInAnimations();
   initCounterAnimations();
   initHoverOverlayAnimations();
+  initHoverScaleAnimations();
 }
 
 // ------------------------------------------------------
