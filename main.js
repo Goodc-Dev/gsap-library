@@ -150,7 +150,42 @@ function initHoverScaleAnimations() {
 // Inicjalizacja animacji “underline from left” (klasa .gasp-underline)
 // ------------------------------------------------------
 function initUnderlineAnimations() {
-  
+  const links = document.querySelectorAll(".gasp-underline");
+
+  links.forEach((link) => {
+    // 1. Ustaw link jako inline-block i position: relative
+    link.style.display = "inline-block";
+    link.style.position = "relative";
+
+    // 2. Stwórz element <span> na underline
+    const underline = document.createElement("span");
+    underline.style.position = "absolute";
+    underline.style.bottom = "0";
+    underline.style.left = "0";
+    underline.style.height = "2px";
+    underline.style.width = "0%";
+    underline.style.backgroundColor = "currentColor";
+    underline.style.pointerEvents = "none";
+
+    // 3. Dodaj underline do linka
+    link.appendChild(underline);
+
+    // 4. Animacja na hover
+    link.addEventListener("mouseenter", () => {
+      gsap.to(underline, {
+        width: "100%",
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    });
+    link.addEventListener("mouseleave", () => {
+      gsap.to(underline, {
+        width: "0%",
+        duration: 0.3,
+        ease: "power2.in"
+      });
+    });
+  });
 }
 
 // ------------------------------------------------------
