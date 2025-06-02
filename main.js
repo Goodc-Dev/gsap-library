@@ -90,35 +90,20 @@ function initCounterAnimations() {
 // ------------------------------------------------------
 // Inicjalizacja animacji “hover overlay” (klasy .media-wave i .hover-bg-overlay)
 // ------------------------------------------------------
-// Jeżeli overlay nie jest dzieckiem media-wave, spróbujemy dopasować
-// według kolejności w NodeList (indeksów). Jeśli jest tylko jeden overlay,
-// każdy media-wave będzie go animował.
-// ------------------------------------------------------
 function initHoverOverlayAnimations() {
   const waves = document.querySelectorAll(".media-wave");
   const overlays = document.querySelectorAll(".hover-bg-overlay");
 
   waves.forEach((wave, idx) => {
-    // 1) Spróbuj znaleźć overlay wewnątrz media-wave
     let overlay = wave.querySelector(".hover-bg-overlay");
-
-    // 2) Jeśli nie ma wewnątrz, a liczba overlayów równa liczbie wave'ów,
-    //    dopasuj po tej samej pozycji w NodeList
     if (!overlay && overlays.length === waves.length) {
       overlay = overlays[idx];
     }
-
-    // 3) Jeśli dalej brak, a jest przynajmniej jeden overlay, weź pierwszy
     if (!overlay && overlays.length > 0) {
       overlay = overlays[0];
     }
+    if (!overlay) return;
 
-    if (!overlay) {
-      // nie znaleziono overlay — pomiń
-      return;
-    }
-
-    // Na hover wchodzimy tylko po "mouseenter" (nie przy scrollup)
     wave.addEventListener("mouseenter", () => {
       gsap.to(overlay, {
         opacity: 1,
@@ -126,7 +111,6 @@ function initHoverOverlayAnimations() {
         ease: "power2.out"
       });
     });
-
     wave.addEventListener("mouseleave", () => {
       gsap.to(overlay, {
         opacity: 0,
@@ -138,12 +122,11 @@ function initHoverOverlayAnimations() {
 }
 
 // ------------------------------------------------------
-// Inicjalizacja animacji “hover scale” (klasa .footer-link)
+// Inicjalizacja animacji “hover scale” (klasa .gasp-hover-scale-up)
 // ------------------------------------------------------
 function initHoverScaleAnimations() {
-  const links = document.querySelectorAll(".footer-link");
+  const links = document.querySelectorAll(".gasp-hover-scale-up");
   links.forEach((link) => {
-    // Ustaw transform-origin w CSS lub tutaj programowo:
     link.style.transformOrigin = "center center";
 
     link.addEventListener("mouseenter", () => {
