@@ -153,7 +153,8 @@ function initUnderlineAnimations() {
   const links = document.querySelectorAll(".gasp-underline");
 
   links.forEach((link) => {
-    // 1. Ustaw link jako position: relative (jeśli nie jest)
+    // 1. Wymuś, żeby link miał tylko szerokość tekstu:
+    link.style.display = "inline-block";
     link.style.position = "relative";
 
     // 2. Stwórz element <span> na underline
