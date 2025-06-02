@@ -27,15 +27,6 @@ function initSlideInAnimations() {
         trigger: item,
         start: "top 90%",
         toggleActions: "play none none reset"
-        // toggleActions: [onEnter, onLeave, onEnterBack, onLeaveBack]
-        // "play none none reset" oznacza:
-        //   onEnter      → play
-        //   onLeave      → (nic)
-        //   onEnterBack  → (nic)
-        //   onLeaveBack  → reset (wraca do stanu początkowego)
-        // Dzięki temu: przy scrollu w dół animuje się za każdym razem,
-        // ale przy scrollu w górę wraca do stanu startowego bez powtarzania animacji.
-        // markers: true // odkomentuj, aby zobaczyć markery w DevTools
       }
     });
   });
@@ -49,27 +40,24 @@ function initSlideInAnimations() {
 // ------------------------------------------------------
 function initCounterAnimations() {
   const counters = document.querySelectorAll(".gsap-counter");
-
   counters.forEach((elem) => {
-    const text = elem.textContent.trim();
-    // Znajdź pierwsze wystąpienie cyfry (ciąg cyfr)
-    const match = text.match(/(\d+)/);
+    // 1. Pobranie oryginalnego tekstu i wyciągnięcie pierwszej liczby:
+    const originalText = elem.textContent.trim();
+    const match = originalText.match(/(\d+)/);
     if (!match) return; // brak liczby → pomiń
 
-    const numberString = match[1];           // np. "30"
-    const endValue = parseInt(numberString, 10);
+    const numberString = match[1];                // np. "30"
+    const endValue = parseInt(numberString, 10);  // np. 30
     if (isNaN(endValue)) return;
 
-    // Podzielmy oryginalny tekst na prefiks, liczbę i sufiks:
-    const indexStart = match.index;
-    const indexEnd = indexStart + numberString.length;
-    const prefix = text.slice(0, indexStart);   // np. ""
-    const suffix = text.slice(indexEnd);        // np. " lat"
+    // 2. Przygotowanie wzorca (szablonu) do podmiany liczby:
+    //    będziemy każdorazowo robić replace(/(\d+)/, currentValue)
+    const template = originalText;
 
-    // Ustaw początkowy widok (z zostawionym prefixem i suffixem, a liczbą "0")
-    elem.textContent = prefix + "0" + suffix;
+    // 3. Ustawiamy początkową zawartość = szablon z "0" w miejsce liczby
+    elem.textContent = template.replace(/(\d+)/, "0");
 
-    // Obiekt pomocniczy do tweenowania
+    // 4. Obiekt pomocniczy do tweenowania
     const obj = { value: 0 };
 
     gsap.to(obj, {
@@ -80,14 +68,14 @@ function initCounterAnimations() {
         trigger: elem,
         start: "top 90%",
         toggleActions: "play none none none"
-        // markers: true // odkomentuj, aby zobaczyć markery w DevTools
+        // markers: true  // odkomentuj, aby zobaczyć markery w DevTools
       },
       onUpdate: () => {
         const current = Math.floor(obj.value);
-        elem.textContent = prefix + current + suffix;
+        elem.textContent = template.replace(/(\d+)/, current);
       },
       onComplete: () => {
-        elem.textContent = prefix + endValue + suffix;
+        elem.textContent = template.replace(/(\d+)/, endValue);
       }
     });
   });
