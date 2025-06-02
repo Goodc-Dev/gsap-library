@@ -175,7 +175,7 @@ function initUnderlineAnimations() {
     underline.style.position = "absolute";
     underline.style.bottom = "0";
     underline.style.left = "0";
-    underline.style.height = "2px";
+    underline.style.height = "1px";
     underline.style.width = "0%";
     underline.style.backgroundColor = "currentColor";
     underline.style.pointerEvents = "none";
