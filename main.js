@@ -40,3 +40,53 @@ function initSlideInAnimations() {
     });
   });
 }
+
+// ------------------------------------------------------
+// Inicjalizacja animacji “counter” (klasa .gsap-counter)
+// ------------------------------------------------------
+function initCounterAnimations() {
+  const counters = document.querySelectorAll(".gsap-counter");
+  counters.forEach((elem) => {
+    // Pobranie docelowej wartości z tekstu elementu
+    const endValue = parseInt(elem.textContent, 10);
+    if (isNaN(endValue)) return;
+
+    // Ustawienie początkowego tekstu na "0"
+    elem.textContent = "0";
+
+    // Obiekt pomocniczy, który GSAP tweenuje
+    const obj = { value: 0 };
+
+    gsap.to(obj, {
+      value: endValue,
+      duration: 1.2,
+      ease: "power1.out",
+      scrollTrigger: {
+        trigger: elem,
+        start: "top 90%",
+        toggleActions: "play none none none"
+        // markers: true // odkomentuj, aby zobaczyć markery w DevTools
+      },
+      onUpdate: () => {
+        elem.textContent = Math.floor(obj.value);
+      },
+      onComplete: () => {
+        elem.textContent = endValue;
+      }
+    });
+  });
+}
+
+// ------------------------------------------------------
+// Główna funkcja inicjalizująca wszystkie animacje
+// ------------------------------------------------------
+function initAnimations() {
+  registerGSAPPlugins();
+  initSlideInAnimations();
+  initCounterAnimations();
+}
+
+// ------------------------------------------------------
+// Wywołanie inicjalizacji po załadowaniu DOM
+// ------------------------------------------------------
+document.addEventListener("DOMContentLoaded", initAnimations);
