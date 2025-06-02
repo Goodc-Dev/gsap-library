@@ -12,23 +12,48 @@ function registerGSAPPlugins() {
 // ------------------------------------------------------
 // Inicjalizacja animacji “slide-in” (klasa .gsap-slide-in)
 // ------------------------------------------------------
-// Teraz animacja odpala się za każdym razem, gdy przewiniesz w dół do elementu.
-// Animacja nie uruchamia się przy scrollu w górę.
+// Teraz wspieramy dwie wersje:
+// 1) Bez dodatkowej klasy – animuje sam element (.gsap-slide-in).
+// 2) Z dodatkową klasą .gsap-slide-in-stagger – animuje dzieci kontenera
+//    z drobnym opóźnieniem (stagger).
 // ------------------------------------------------------
 function initSlideInAnimations() {
   const slideItems = document.querySelectorAll(".gsap-slide-in");
+
   slideItems.forEach((item) => {
-    gsap.from(item, {
-      y: 50,
-      opacity: 0,
-      duration: 0.8,
-      ease: "power3.out",
-      scrollTrigger: {
-        trigger: item,
-        start: "top 90%",
-        toggleActions: "play none none reset"
-      }
-    });
+    const isStaggered = item.classList.contains("gsap-slide-in-stagger");
+
+    if (isStaggered) {
+      // Animacja dzieci z opóźnieniem (stagger)
+      const children = item.children;
+      gsap.from(children, {
+        y: 50,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power3.out",
+        stagger: 0.2, // opóźnienie 0.2s między kolejnymi dziećmi
+        scrollTrigger: {
+          trigger: item,
+          start: "top 90%",
+          toggleActions: "play none none reset"
+          // markers: true // odkomentuj, aby zobaczyć markery w DevTools
+        }
+      });
+    } else {
+      // Standardowa animacja – pojedynczy element
+      gsap.from(item, {
+        y: 50,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: item,
+          start: "top 90%",
+          toggleActions: "play none none reset"
+          // markers: true // odkomentuj, aby zobaczyć markery w DevTools
+        }
+      });
+    }
   });
 }
 
