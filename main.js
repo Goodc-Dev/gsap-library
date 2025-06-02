@@ -12,10 +12,6 @@ function registerGSAPPlugins() {
 // ------------------------------------------------------
 // Inicjalizacja animacji “slide-in” (klasa .gsap-slide-in)
 // ------------------------------------------------------
-// 1) Bez dodatkowej klasy – animuje sam element (.gsap-slide-in).
-// 2) Z dodatkową klasą .gsap-slide-in-stagger – animuje dzieci kontenera
-//    z drobnym opóźnieniem (stagger).
-// ------------------------------------------------------
 function initSlideInAnimations() {
   const slideItems = document.querySelectorAll(".gsap-slide-in");
 
@@ -34,7 +30,6 @@ function initSlideInAnimations() {
           trigger: item,
           start: "top 90%",
           toggleActions: "play none none reset"
-          // markers: true
         }
       });
     } else {
@@ -47,7 +42,6 @@ function initSlideInAnimations() {
           trigger: item,
           start: "top 90%",
           toggleActions: "play none none reset"
-          // markers: true
         }
       });
     }
@@ -56,9 +50,6 @@ function initSlideInAnimations() {
 
 // ------------------------------------------------------
 // Inicjalizacja animacji “counter” (klasa .gsap-counter)
-// ------------------------------------------------------
-// Wyciąga pierwszą wartość liczbową z treści elementu,
-// pozostawiając prefiks i sufiks (np. "lat", "%").
 // ------------------------------------------------------
 function initCounterAnimations() {
   const counters = document.querySelectorAll(".gsap-counter");
@@ -84,7 +75,6 @@ function initCounterAnimations() {
         trigger: elem,
         start: "top 90%",
         toggleActions: "play none none none"
-        // markers: true
       },
       onUpdate: () => {
         const current = Math.floor(obj.value);
@@ -98,19 +88,37 @@ function initCounterAnimations() {
 }
 
 // ------------------------------------------------------
-// Inicjalizacja animacji “hover overlay” (klasa .media-wave)
+// Inicjalizacja animacji “hover overlay” (klasy .media-wave i .hover-bg-overlay)
 // ------------------------------------------------------
-// Wewnątrz .media-wave powinien znajdować się div .hover-bg-overlay,
-// ustawiony absolutnie na 100% szerokości i wysokości, z opacity: 0.
-// Po najechaniu opacity animuje się do 1, po opuszczeniu do 0.
+// Jeżeli overlay nie jest dzieckiem media-wave, spróbujemy dopasować
+// według kolejności w NodeList (indeksów). Jeśli jest tylko jeden overlay,
+// każdy media-wave będzie go animował.
 // ------------------------------------------------------
 function initHoverOverlayAnimations() {
   const waves = document.querySelectorAll(".media-wave");
+  const overlays = document.querySelectorAll(".hover-bg-overlay");
 
-  waves.forEach((wave) => {
-    const overlay = wave.querySelector(".hover-bg-overlay");
-    if (!overlay) return;
+  waves.forEach((wave, idx) => {
+    // 1) Spróbuj znaleźć overlay wewnątrz media-wave
+    let overlay = wave.querySelector(".hover-bg-overlay");
 
+    // 2) Jeśli nie ma wewnątrz, a liczba overlayów równa liczbie wave'ów,
+    //    dopasuj po tej samej pozycji w NodeList
+    if (!overlay && overlays.length === waves.length) {
+      overlay = overlays[idx];
+    }
+
+    // 3) Jeśli dalej brak, a jest przynajmniej jeden overlay, weź pierwszy
+    if (!overlay && overlays.length > 0) {
+      overlay = overlays[0];
+    }
+
+    if (!overlay) {
+      // nie znaleziono overlay — pomiń
+      return;
+    }
+
+    // Na hover wchodzimy tylko po "mouseenter" (nie przy scrollup)
     wave.addEventListener("mouseenter", () => {
       gsap.to(overlay, {
         opacity: 1,
