@@ -305,7 +305,7 @@ function initGalleryLoopAnimations() {
 }
 
 // ------------------------------------------------------
-// Inicjalizacja “gallery next” z crossfade i poprawionym pomiarem height
+// Inicjalizacja “gallery next” z crossfade i pętlą (loop)
 // (klasy .gasp-gallery / .gasp-gallery-inner / .gasp-gallery-next)
 // ------------------------------------------------------
 function initGalleryNextAnimations() {
@@ -317,43 +317,40 @@ function initGalleryNextAnimations() {
     const items = Array.from(inner.children);
     if (items.length === 0) return;
 
-    // 1) Znajdź pierwszy element, który w kodzie jest wyświetlany (display ≠ "none")
+    // Znajdź pozycję pierwszego elementu widocznego w kodzie (display ≠ none)
     let firstIndex = items.findIndex((el) =>
       window.getComputedStyle(el).display !== "none"
     );
     if (firstIndex < 0) firstIndex = 0;
     const first = items[firstIndex];
 
-    // 2) Przygotuj first do pomiaru: jeśli to img i nie załadowany, czekaj na load
+    // Funkcja mierząca i ustawiająca absolutne pozycjonowanie
     function measureAndSetup() {
-      // a) Tymczasowo przywróć first do naturalnego flow, by zmierzyć height:
-      //    - ustaw display:block!important, position: static, visibility:hidden
+      // Tymczasowo przywróć naturalne flow, aby zmierzyć wysokość first:
       first.style.setProperty("display", "block", "important");
       first.style.position = "static";
       first.style.visibility = "hidden";
 
-      // b) Ustaw inner w tryb naturalny flow, by zmierzyć
       inner.style.position = "static";
       inner.style.height = "auto";
 
-      // c) Pomiar height first
       const rect = first.getBoundingClientRect();
       const galleryHeight = rect.height;
 
-      // d) Przywróć inner i dzieci do pożądanego stanu:
+      // Przywróć absolutne pozycjonowanie i stałą wysokość
       inner.style.position = "relative";
       inner.style.height = galleryHeight + "px";
 
       items.forEach((item, idx) => {
-        // Usuń dowolne display:none, nadpisz block!important
-        item.style.setProperty("display", "block", "important");
-        // Absolutne pozycjonowanie
+        // Nadpisz dowolne display:none i ustaw block!important
+        item.style.setProperty("display", idx === firstIndex ? "block" : "none", "important");
         item.style.position = "absolute";
         item.style.top = "0";
         item.style.left = "0";
         item.style.width = "100%";
         item.style.height = "100%";
-        // Ustaw opacity/z-index: pierwszy widoczny, reszta ukryta
+        item.style.visibility = "visible";
+
         if (idx === firstIndex) {
           item.style.opacity = "1";
           item.style.zIndex = "1";
@@ -361,8 +358,6 @@ function initGalleryNextAnimations() {
           item.style.opacity = "0";
           item.style.zIndex = "0";
         }
-        // Przywróć visibility w razie first
-        item.style.visibility = "visible";
       });
     }
 
@@ -373,37 +368,42 @@ function initGalleryNextAnimations() {
       measureAndSetup();
     }
 
-    // 3) Obsługa kliknięcia: crossfade
+    // Obsługa kliknięcia z crossfade i pętlą
     button.addEventListener("click", () => {
-      const currentIndex = items.findIndex(
-        (el) => parseFloat(el.style.opacity) > 0.5
+      // Znajdź aktualnie widoczny (opacity > 0.5)
+      let currentIndex = items.findIndex(
+        (el) => parseFloat(window.getComputedStyle(el).opacity) > 0.5
       );
-      const idx = currentIndex < 0 ? firstIndex : currentIndex;
-      const current = items[idx];
-      const nextIndex = (idx + 1) % items.length;
+      if (currentIndex < 0) currentIndex = firstIndex;
+
+      const current = items[currentIndex];
+      // Loop: jeśli aktualny to ostatni, weź index 0, w przeciwnym razie +1
+      const nextIndex = (currentIndex + 1) % items.length;
       const next = items[nextIndex];
 
-      // Przygotuj next do crossfade
+      // Przygotuj next: display:block!important, opacity 0, zIndex wyższy
       next.style.setProperty("display", "block", "important");
       next.style.opacity = "0";
       next.style.zIndex = "2";
       current.style.zIndex = "1";
 
       const fadeDuration = 0.5;
+      // Fade-in next
       gsap.to(next, {
         opacity: 1,
         duration: fadeDuration,
         ease: "power1.out",
         onComplete: () => {
+          // Po fade-in ukryj current: display:none!important, zIndex=0
           current.style.setProperty("display", "none", "important");
           current.style.zIndex = "0";
+          // Zaktualizuj firstIndex, by next stał się nowym startem
           firstIndex = nextIndex;
         }
       });
     });
   });
 }
-
 
 // ------------------------------------------------------
 // Główna funkcja inicjalizująca wszystkie animacje
