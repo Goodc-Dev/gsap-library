@@ -305,53 +305,64 @@ function initGalleryLoopAnimations() {
 }
 
 // ------------------------------------------------------
-// Inicjalizacja “gallery next” z fade (klasa .gasp-gallery-next / .gasp-gallery-inner)
+// Inicjalizacja “gallery next” z crossfade (klasa .gasp-gallery-next / .gasp-gallery-inner)
 // ------------------------------------------------------
-// Struktura HTML stanowi:
-// <div class="gasp-gallery">
-//   <div class="gasp-gallery-inner">
-//     <img src="first.jpg" style="display: block; opacity: 1;">
-//     <img src="second.jpg" style="display: none; opacity: 0;">
-//     <div style="display: none; opacity: 0;">Dowolny content</div>
-//   </div>
-//   <img src="plus.svg" class="gasp-gallery-next" alt="dalej">
-// </div>
-//
-// Po kliknięciu “.gasp-gallery-next” skrypt wykonuje jednoczesne crossfade:
-//  – ustawia kolejny element na display: block; opacity: 0,
-//  – animuje opacity (0→1) nowego i (1→0) bieżącego,
-//  – po zakończeniu fade-out bieżący element dostaje display: none.
+// Działa nawet jeśli obrazki są lazy‐loaded – wszystkie elementy ustawione są absolutnie,
+// więc przeskoki w dół nie występują.
 // ------------------------------------------------------
 function initGalleryNextAnimations() {
   document.querySelectorAll(".gasp-gallery-next").forEach((button) => {
+    // Przy starcie ustawiamy galerię i dzieci
+    const container = button.closest(".gasp-gallery");
+    if (!container) return;
+    const inner = container.querySelector(".gasp-gallery-inner");
+    if (!inner) return;
+
+    // 1) Ustaw inner jako position: relative i wymuś wysokość równą pierwszemu elementowi
+    const first = inner.children[0];
+    inner.style.position = "relative";
+    // Początkowo: children mogą mieć display: block/none – usuniemy display:none
+    Array.from(inner.children).forEach((item, idx) => {
+      // Usuń display: none
+      item.style.display = "block";
+      // Pozycjonowanie absolutne
+      item.style.position = "absolute";
+      item.style.top = "0";
+      item.style.left = "0";
+      item.style.width = "100%";
+      item.style.height = "100%";
+      // Initial opacity: pierwszy 1, reszta 0
+      item.style.opacity = idx === 0 ? "1" : "0";
+    });
+    // Ustaw wysokość inner na wysokość pierwszego elementu (po załadowaniu, jeśli to img)
+    function setHeight() {
+      const rect = first.getBoundingClientRect();
+      inner.style.height = rect.height + "px";
+    }
+    if (first.tagName === "IMG" && !first.complete) {
+      first.addEventListener("load", setHeight);
+      first.addEventListener("error", setHeight);
+    } else {
+      setHeight();
+    }
+
+    // 2) Obsługa kliknięcia: crossfade
     button.addEventListener("click", () => {
-      const container = button.closest(".gasp-gallery");
-      if (!container) return;
-
-      const inner = container.querySelector(".gasp-gallery-inner");
-      if (!inner) return;
-
       const items = Array.from(inner.children);
       if (items.length === 0) return;
-
-      // Znajdź aktualnie widoczny element (display ≠ "none")
-      let currentIndex = items.findIndex((el) => {
-        const disp = window.getComputedStyle(el).display;
-        return disp !== "none";
-      });
+      // Znajdź aktualnie widoczny (opacity > 0.5)
+      let currentIndex = items.findIndex((el) => parseFloat(el.style.opacity) > 0.5);
       if (currentIndex < 0) currentIndex = 0;
-
       const current = items[currentIndex];
       const nextIndex = (currentIndex + 1) % items.length;
       const next = items[nextIndex];
 
-      // Przygotuj next: pokaż go i wymuś opacity 0
-      next.style.display = "block";
-      next.style.opacity = "0";
+      // 3) Crossfade: fade-in next, fade-out current
+      const fadeDuration = 0.5;
+      // Upewnij się, że next jest nad current
+      next.style.zIndex = "1";
+      current.style.zIndex = "0";
 
-      const fadeDuration = 0.5; // czas fade w sekundach
-
-      // Crossfade: jednoczesne fade-in next i fade-out current
       gsap.to(next, {
         opacity: 1,
         duration: fadeDuration,
@@ -360,11 +371,7 @@ function initGalleryNextAnimations() {
       gsap.to(current, {
         opacity: 0,
         duration: fadeDuration,
-        ease: "power1.out",
-        onComplete: () => {
-          // po zakończeniu fade-out ukryj bieżący
-          current.style.display = "none";
-        }
+        ease: "power1.out"
       });
     });
   });
