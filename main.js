@@ -205,9 +205,8 @@ function initUnderlineAnimations() {
 // ------------------------------------------------------
 // Inicjalizacja animacji “gallery loop” (klasa .gasp-gallery-loop)
 // ------------------------------------------------------
-// Ulepszona wersja: uwzględnia w100p (display: inline-block, width:100%) 
-// i ustawia wysokość kontenera na wysokość pierwszego elementu, dzięki czemu
-// absolutnie pozycjonowane dzieci są widoczne poprawnie.
+// Zmodyfikowana wersja: najpierw fade-in nowego elementu, potem fade-out poprzedniego.
+// Skrócone czasy animacji, aby nie było widocznego tła pod obrazem.
 // ------------------------------------------------------
 function initGalleryLoopAnimations() {
   const galleries = document.querySelectorAll(".gasp-gallery-loop");
@@ -220,7 +219,7 @@ function initGalleryLoopAnimations() {
     gallery.style.position = "relative";
     gallery.style.overflow = "hidden";
 
-    // 2) Poczekaj, aż pierwsze <img> w galerii się załaduje (jeśli jest <img>)
+    // 2) Poczekaj, aż pierwszy element <img> się wczyta (jeśli to <img>)
     const firstItem = items[0];
     const waitForImage = firstItem.tagName === "IMG"
       ? new Promise((resolve) => {
@@ -228,7 +227,6 @@ function initGalleryLoopAnimations() {
             resolve();
           } else {
             firstItem.addEventListener("load", resolve);
-            // W razie gdyby źle podpięty: 
             firstItem.addEventListener("error", resolve);
           }
         })
@@ -239,27 +237,30 @@ function initGalleryLoopAnimations() {
       const rect = firstItem.getBoundingClientRect();
       gallery.style.height = rect.height + "px";
 
-      // 4) Usuń klasę dnone i ustaw wszystkie elementy absolutnie
+      // 4) Usuń dnone i ustaw absolutne pozycjonowanie dla każdego dziecka
       items.forEach((item, idx) => {
         if (item.classList.contains("dnone")) {
           item.classList.remove("dnone");
         }
-        // Jeśli element to <img w100p>, zostaw jego width:100% i display:inline-block
-        // ale i tak ustawiamy absolutne pozycjonowanie, a height zostawiamy auto
         item.style.position = "absolute";
         item.style.top = "0";
         item.style.left = "0";
-        item.style.width = "100%";       // w100p wymusza width:100%
-        item.style.height = "auto";      // pozwala zachować proporcje
-        item.style.display = "block";    // do animowania opacity
+        item.style.width = "100%";
+        item.style.height = "auto";
+        item.style.display = "block";
 
-        // Początkowo tylko pierwszy element ma opacity:1
+        // Wyrównaj z-index, by wszystkie startowały poniżej (0),
+        // a pierwszy był widoczny
+        item.style.zIndex = idx === 0 ? "1" : "0";
+
+        // Initial opacity: tylko pierwszy element widoczny
         item.style.opacity = idx === 0 ? "1" : "0";
       });
 
-      // 5) Tworzymy timeline loopujący po elementach
-      const fadeDuration = 1;  // sekundy na crossfade
-      const stayDuration = 2;  // sekundy widoczności
+      // 5) Timeline loopujący
+      const fadeInDuration = 0.5;   // fade-in nowego
+      const fadeOutDuration = 0.5;  // fade-out starego
+      const stayDuration = 1.5;     // czas pełnej widoczności
 
       const tl = gsap.timeline({
         scrollTrigger: {
@@ -274,24 +275,29 @@ function initGalleryLoopAnimations() {
         const current = items[i];
         const next = items[(i + 1) % items.length];
 
-        // Fade-in elementu next po stayDuration
+        // 5a) Ustaw zIndex=1 na next, by był nad current
+        tl.set(next, { zIndex: 1 }, `+=${stayDuration}`);
+
+        // 5b) Fade-in next (opacity 0 → 1)
         tl.to(next, {
           opacity: 1,
-          duration: fadeDuration,
+          duration: fadeInDuration,
           ease: "power1.out"
-        }, `+=${stayDuration}`);
+        }, `-=${0}`); // zaczynamy natychmiast po ustawieniu zIndex
 
-        // Jednoczesny fade-out elementu current w ostatniej sekundzie crossfade’u
+        // 5c) Fade-out current (opacity 1 → 0) dopiero po zakończeniu fadeIn
         tl.to(current, {
           opacity: 0,
-          duration: fadeDuration,
+          duration: fadeOutDuration,
           ease: "power1.out"
-        }, `-=${fadeDuration}`);
+        }, `+=${fadeInDuration}`); 
+
+        // 5d) Po fade-out cofamy zIndex current na 0, żeby rzucić go na spód
+        tl.set(current, { zIndex: 0 }, `+=0`);
       });
     });
   });
 }
-
 
 // ------------------------------------------------------
 // Główna funkcja inicjalizująca wszystkie animacje
