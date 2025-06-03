@@ -69,7 +69,7 @@ function initCounterAnimations() {
     const obj = { value: 0 };
     gsap.to(obj, {
       value: endValue,
-      duration: 1.2,
+      duration: 1.8,
       ease: "power1.out",
       scrollTrigger: {
         trigger: elem,
