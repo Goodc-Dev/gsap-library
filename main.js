@@ -88,30 +88,25 @@ function initCounterAnimations() {
 }
 
 // ------------------------------------------------------
-// Inicjalizacja animacji “hover overlay” (klasa .gasp-hover-overlay-target)
+// Inicjalizacja animacji “hover overlay” (klasa .gasp-hover-overlay)
 // ------------------------------------------------------
-// Działa na dowolne elementy oznaczone klasą .gasp-hover-overlay-target:
-// 1) skrypt sam wstawia wewnątrz siebie element .gasp-hover-overlay,
-// 2) ustawia kontener na position: relative,
-// 3) animuje overlay na hover (fade-in/fade-out).
-// Nie wymaga żadnej konkretnej struktury HTML poza nadaniem klasy.
+// Skrypt zakłada, że w HTML masz już <div class="gasp-hover-overlay"> wstawione
+// wewnątrz kontenera.   
+// Na hover nad rodzicem (.parentElement) włącza fade‐in overlay’u, na mouseleave – fade‐out.
 // ------------------------------------------------------
 function initHoverOverlayAnimations() {
-  // Znajdź każdy element, który ma być “targetem” hover‐overlay
-  const targets = document.querySelectorAll(".gasp-hover-overlay-target");
+  document.querySelectorAll(".gasp-hover-overlay").forEach((overlay) => {
+    const container = overlay.parentElement;
+    if (!container) return;
 
-  targets.forEach((target) => {
-    // A. Upewnij się, że kontener jest position: relative
-    const computed = window.getComputedStyle(target);
+    // 1) Ustawiamy rodzica na position: relative, jeśli jest static
+    const computed = window.getComputedStyle(container);
     if (computed.position === "static") {
-      target.style.position = "relative";
+      container.style.position = "relative";
     }
-    target.style.overflow = "hidden"; // zapobiegamy wychodzeniu overlay poza
+    container.style.overflow = "hidden";
 
-    // B. Stwórz overlay i wstaw na sam początek targeta
-    const overlay = document.createElement("div");
-    overlay.classList.add("gasp-hover-overlay");
-    // Pozycjonowanie i domyślne style overlayu:
+    // 2) Ustawiamy overlay jako absolutny i niewidoczny na start
     overlay.style.position = "absolute";
     overlay.style.top = "0";
     overlay.style.left = "0";
@@ -119,23 +114,14 @@ function initHoverOverlayAnimations() {
     overlay.style.height = "100%";
     overlay.style.opacity = "0";
     overlay.style.pointerEvents = "none";
-    // Tło dla overlayu definiujemy w CSS, np. .gasp-hover-overlay { background: rgba(0,0,0,0.3); }
-    target.prepend(overlay);
+    // Tło (background-image/ color) definiujesz w Designerze na klasie .gasp-hover-overlay
 
-    // C. Dodaj listener na hover całego targeta
-    target.addEventListener("mouseenter", () => {
-      gsap.to(overlay, {
-        opacity: 1,
-        duration: 0.3,
-        ease: "power2.out"
-      });
+    // 3) Animacja GSAP: fade-in na hover rodzica, fade-out po wyjściu
+    container.addEventListener("mouseenter", () => {
+      gsap.to(overlay, { opacity: 1, duration: 0.3, ease: "power2.out" });
     });
-    target.addEventListener("mouseleave", () => {
-      gsap.to(overlay, {
-        opacity: 0,
-        duration: 0.3,
-        ease: "power2.in"
-      });
+    container.addEventListener("mouseleave", () => {
+      gsap.to(overlay, { opacity: 0, duration: 0.3, ease: "power2.in" });
     });
   });
 }
