@@ -88,30 +88,49 @@ function initCounterAnimations() {
 }
 
 // ------------------------------------------------------
-// Inicjalizacja animacji “hover overlay” (klasy .media-wave i .hover-bg-overlay)
+// Inicjalizacja animacji “hover overlay” (klasa .gasp-hover-overlay-target)
+// ------------------------------------------------------
+// Działa na dowolne elementy oznaczone klasą .gasp-hover-overlay-target:
+// 1) skrypt sam wstawia wewnątrz siebie element .gasp-hover-overlay,
+// 2) ustawia kontener na position: relative,
+// 3) animuje overlay na hover (fade-in/fade-out).
+// Nie wymaga żadnej konkretnej struktury HTML poza nadaniem klasy.
 // ------------------------------------------------------
 function initHoverOverlayAnimations() {
-  const waves = document.querySelectorAll(".media-wave");
-  const overlays = document.querySelectorAll(".hover-bg-overlay");
+  // Znajdź każdy element, który ma być “targetem” hover‐overlay
+  const targets = document.querySelectorAll(".gasp-hover-overlay-target");
 
-  waves.forEach((wave, idx) => {
-    let overlay = wave.querySelector(".hover-bg-overlay");
-    if (!overlay && overlays.length === waves.length) {
-      overlay = overlays[idx];
+  targets.forEach((target) => {
+    // A. Upewnij się, że kontener jest position: relative
+    const computed = window.getComputedStyle(target);
+    if (computed.position === "static") {
+      target.style.position = "relative";
     }
-    if (!overlay && overlays.length > 0) {
-      overlay = overlays[0];
-    }
-    if (!overlay) return;
+    target.style.overflow = "hidden"; // zapobiegamy wychodzeniu overlay poza
 
-    wave.addEventListener("mouseenter", () => {
+    // B. Stwórz overlay i wstaw na sam początek targeta
+    const overlay = document.createElement("div");
+    overlay.classList.add("gasp-hover-overlay");
+    // Pozycjonowanie i domyślne style overlayu:
+    overlay.style.position = "absolute";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100%";
+    overlay.style.height = "100%";
+    overlay.style.opacity = "0";
+    overlay.style.pointerEvents = "none";
+    // Tło dla overlayu definiujemy w CSS, np. .gasp-hover-overlay { background: rgba(0,0,0,0.3); }
+    target.prepend(overlay);
+
+    // C. Dodaj listener na hover całego targeta
+    target.addEventListener("mouseenter", () => {
       gsap.to(overlay, {
         opacity: 1,
         duration: 0.3,
         ease: "power2.out"
       });
     });
-    wave.addEventListener("mouseleave", () => {
+    target.addEventListener("mouseleave", () => {
       gsap.to(overlay, {
         opacity: 0,
         duration: 0.3,
