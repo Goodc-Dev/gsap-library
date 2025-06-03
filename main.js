@@ -260,7 +260,7 @@ function initGalleryLoopAnimations() {
       // 5) Timeline loopujący
       const fadeInDuration = 0.5;   // fade-in nowego
       const fadeOutDuration = 0.5;  // fade-out starego
-      const stayDuration = 1.5;     // czas pełnej widoczności
+      const stayDuration = 1;     // czas pełnej widoczności
 
       const tl = gsap.timeline({
         scrollTrigger: {
