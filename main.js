@@ -305,52 +305,67 @@ function initGalleryLoopAnimations() {
 }
 
 // ------------------------------------------------------
-// Inicjalizacja “gallery next” (klasa .gasp-gallery-next / .gasp-gallery-inner)
+// Inicjalizacja “gallery next” z fade (klasa .gasp-gallery-next / .gasp-gallery-inner)
 // ------------------------------------------------------
-// 1) W HTML wystarczy mieć:
-//
+// Struktura HTML stanowi:
 // <div class="gasp-gallery">
 //   <div class="gasp-gallery-inner">
-//     <!-- dowolne elementy (img, div itp.), pierwszy widoczny, pozostałe style="display: none;" -->
+//     <img src="first.jpg" style="display: block; opacity: 1;">
+//     <img src="second.jpg" style="display: none; opacity: 0;">
+//     <div style="display: none; opacity: 0;">Dowolny content</div>
 //   </div>
 //   <img src="plus.svg" class="gasp-gallery-next" alt="dalej">
 // </div>
 //
-// Skrypt:
-//
-// - nie wymaga żadnych specjalnych klas na dzieciach .gasp-gallery-inner
-// - po kliknięciu .gasp-gallery-next przełącza widoczność kolejnych dzieci
+// Po kliknięciu “.gasp-gallery-next” skrypt wykonuje jednoczesne crossfade:
+//  – ustawia kolejny element na display: block; opacity: 0,
+//  – animuje opacity (0→1) nowego i (1→0) bieżącego,
+//  – po zakończeniu fade-out bieżący element dostaje display: none.
 // ------------------------------------------------------
 function initGalleryNextAnimations() {
   document.querySelectorAll(".gasp-gallery-next").forEach((button) => {
     button.addEventListener("click", () => {
-      // a) Znajdź najbliższy rodzic z klasą .gasp-gallery
       const container = button.closest(".gasp-gallery");
       if (!container) return;
 
-      // b) Wewnątrz container znajdź .gasp-gallery-inner
       const inner = container.querySelector(".gasp-gallery-inner");
       if (!inner) return;
 
-      // c) Weź wszystkie bezpośrednie dzieci (Element.children)
       const items = Array.from(inner.children);
       if (items.length === 0) return;
 
-      // d) Znajdź indeks aktualnie widocznego (display ≠ "none")
+      // Znajdź aktualnie widoczny element (display ≠ "none")
       let currentIndex = items.findIndex((el) => {
         const disp = window.getComputedStyle(el).display;
         return disp !== "none";
       });
       if (currentIndex < 0) currentIndex = 0;
 
-      // e) Ukryj bieżący element
-      items[currentIndex].style.display = "none";
-
-      // f) Oblicz indeks następnego (z pętlą)
+      const current = items[currentIndex];
       const nextIndex = (currentIndex + 1) % items.length;
+      const next = items[nextIndex];
 
-      // g) Pokaż element nextIndex
-      items[nextIndex].style.display = "block";
+      // Przygotuj next: pokaż go i wymuś opacity 0
+      next.style.display = "block";
+      next.style.opacity = "0";
+
+      const fadeDuration = 0.5; // czas fade w sekundach
+
+      // Crossfade: jednoczesne fade-in next i fade-out current
+      gsap.to(next, {
+        opacity: 1,
+        duration: fadeDuration,
+        ease: "power1.out"
+      });
+      gsap.to(current, {
+        opacity: 0,
+        duration: fadeDuration,
+        ease: "power1.out",
+        onComplete: () => {
+          // po zakończeniu fade-out ukryj bieżący
+          current.style.display = "none";
+        }
+      });
     });
   });
 }
