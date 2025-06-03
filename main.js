@@ -305,8 +305,8 @@ function initGalleryLoopAnimations() {
 }
 
 // ------------------------------------------------------
-// Inicjalizacja “gallery next” z crossfade i obsługą dowolnego display: none
-// (klasa .gasp-gallery / .gasp-gallery-inner / .gasp-gallery-next)
+// Inicjalizacja “gallery next” z crossfade i poprawionym pomiarem height
+// (klasy .gasp-gallery / .gasp-gallery-inner / .gasp-gallery-next)
 // ------------------------------------------------------
 function initGalleryNextAnimations() {
   document.querySelectorAll(".gasp-gallery").forEach((container) => {
@@ -314,89 +314,96 @@ function initGalleryNextAnimations() {
     const button = container.querySelector(".gasp-gallery-next");
     if (!inner || !button) return;
 
-    // 1) Przygotuj wszystkie dzieci .gasp-gallery-inner
     const items = Array.from(inner.children);
     if (items.length === 0) return;
 
-    inner.style.position = "relative";
-
-    // a) Znajdź pierwszy widoczny element (compute display ≠ "none")
-    let firstIndex = items.findIndex((el) => {
-      return window.getComputedStyle(el).display !== "none";
-    });
+    // 1) Znajdź pierwszy element, który w kodzie jest wyświetlany (display ≠ "none")
+    let firstIndex = items.findIndex((el) =>
+      window.getComputedStyle(el).display !== "none"
+    );
     if (firstIndex < 0) firstIndex = 0;
-
-    items.forEach((item, idx) => {
-      // b) Wymuś display: block !important dla wszystkich, aby unikać dowolnej klasy display:none
-      item.style.setProperty("display", "block", "important");
-      // c) Absolutne pozycjonowanie na całą szer./wys. rodzica
-      item.style.position = "absolute";
-      item.style.top = "0";
-      item.style.left = "0";
-      item.style.width = "100%";
-      item.style.height = "100%";
-      // d) Ustaw opacity i z-index: tylko pierwszy widoczny, pozostałe ukryte
-      if (idx === firstIndex) {
-        item.style.opacity = "1";
-        item.style.zIndex = "1";
-      } else {
-        item.style.opacity = "0";
-        item.style.zIndex = "0";
-      }
-    });
-
-    // 2) Ustaw wysokość inner według pierwszego elementu
     const first = items[firstIndex];
-    function setHeight() {
+
+    // 2) Przygotuj first do pomiaru: jeśli to img i nie załadowany, czekaj na load
+    function measureAndSetup() {
+      // a) Tymczasowo przywróć first do naturalnego flow, by zmierzyć height:
+      //    - ustaw display:block!important, position: static, visibility:hidden
+      first.style.setProperty("display", "block", "important");
+      first.style.position = "static";
+      first.style.visibility = "hidden";
+
+      // b) Ustaw inner w tryb naturalny flow, by zmierzyć
+      inner.style.position = "static";
+      inner.style.height = "auto";
+
+      // c) Pomiar height first
       const rect = first.getBoundingClientRect();
-      inner.style.height = rect.height + "px";
-    }
-    if (first.tagName === "IMG" && !first.complete) {
-      first.addEventListener("load", setHeight);
-      first.addEventListener("error", setHeight);
-    } else {
-      setHeight();
-    }
+      const galleryHeight = rect.height;
 
-    // 3) Obsługa kliknięcia na przycisk .gasp-gallery-next
-    button.addEventListener("click", () => {
-      // a) Znajdź aktualnie widoczny element: display:block (!) i opacity > 0.5
-      let currentIndex = items.findIndex((el) => {
-        return (
-          window.getComputedStyle(el).display !== "none" &&
-          parseFloat(window.getComputedStyle(el).opacity) > 0.5
-        );
+      // d) Przywróć inner i dzieci do pożądanego stanu:
+      inner.style.position = "relative";
+      inner.style.height = galleryHeight + "px";
+
+      items.forEach((item, idx) => {
+        // Usuń dowolne display:none, nadpisz block!important
+        item.style.setProperty("display", "block", "important");
+        // Absolutne pozycjonowanie
+        item.style.position = "absolute";
+        item.style.top = "0";
+        item.style.left = "0";
+        item.style.width = "100%";
+        item.style.height = "100%";
+        // Ustaw opacity/z-index: pierwszy widoczny, reszta ukryta
+        if (idx === firstIndex) {
+          item.style.opacity = "1";
+          item.style.zIndex = "1";
+        } else {
+          item.style.opacity = "0";
+          item.style.zIndex = "0";
+        }
+        // Przywróć visibility w razie first
+        item.style.visibility = "visible";
       });
-      if (currentIndex < 0) currentIndex = firstIndex;
-      const current = items[currentIndex];
+    }
 
-      // b) Oblicz indeks następnego w pętli
-      const nextIndex = (currentIndex + 1) % items.length;
+    if (first.tagName === "IMG" && !first.complete) {
+      first.addEventListener("load", measureAndSetup);
+      first.addEventListener("error", measureAndSetup);
+    } else {
+      measureAndSetup();
+    }
+
+    // 3) Obsługa kliknięcia: crossfade
+    button.addEventListener("click", () => {
+      const currentIndex = items.findIndex(
+        (el) => parseFloat(el.style.opacity) > 0.5
+      );
+      const idx = currentIndex < 0 ? firstIndex : currentIndex;
+      const current = items[idx];
+      const nextIndex = (idx + 1) % items.length;
       const next = items[nextIndex];
 
-      // c) Przygotuj next: display:block, opacity:0, z-index wyższy niż current
+      // Przygotuj next do crossfade
       next.style.setProperty("display", "block", "important");
       next.style.opacity = "0";
       next.style.zIndex = "2";
       current.style.zIndex = "1";
 
       const fadeDuration = 0.5;
-      // d) Fade-in next (0→1)
       gsap.to(next, {
         opacity: 1,
         duration: fadeDuration,
         ease: "power1.out",
         onComplete: () => {
-          // e) Po fade-in ukryj current: display:none, z-index:0
           current.style.setProperty("display", "none", "important");
           current.style.zIndex = "0";
-          // f) Zaktualizuj pierwszy widoczny, by next był bazą
           firstIndex = nextIndex;
         }
       });
     });
   });
 }
+
 
 // ------------------------------------------------------
 // Główna funkcja inicjalizująca wszystkie animacje
