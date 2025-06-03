@@ -305,7 +305,7 @@ function initGalleryLoopAnimations() {
 }
 
 // ------------------------------------------------------
-// Inicjalizacja “gallery next” z crossfade i pętlą (loop)
+// Inicjalizacja “gallery next” z poprawionym loopem opartym na zmiennej currentIndex
 // (klasy .gasp-gallery / .gasp-gallery-inner / .gasp-gallery-next)
 // ------------------------------------------------------
 function initGalleryNextAnimations() {
@@ -317,16 +317,17 @@ function initGalleryNextAnimations() {
     const items = Array.from(inner.children);
     if (items.length === 0) return;
 
-    // Znajdź pozycję pierwszego elementu widocznego w kodzie (display ≠ none)
-    let firstIndex = items.findIndex((el) =>
+    // Znajdź pozycję pierwszego elementu, który jest widoczny (display ≠ none)
+    let initialIndex = items.findIndex((el) =>
       window.getComputedStyle(el).display !== "none"
     );
-    if (firstIndex < 0) firstIndex = 0;
-    const first = items[firstIndex];
+    if (initialIndex < 0) initialIndex = 0;
+    let currentIndex = initialIndex;
+    const first = items[initialIndex];
 
     // Funkcja mierząca i ustawiająca absolutne pozycjonowanie
     function measureAndSetup() {
-      // Tymczasowo przywróć naturalne flow, aby zmierzyć wysokość first:
+      // 1) Przywróć first do naturalnego flow, aby zmierzyć wysokość:
       first.style.setProperty("display", "block", "important");
       first.style.position = "static";
       first.style.visibility = "hidden";
@@ -337,27 +338,32 @@ function initGalleryNextAnimations() {
       const rect = first.getBoundingClientRect();
       const galleryHeight = rect.height;
 
-      // Przywróć absolutne pozycjonowanie i stałą wysokość
+      // 2) Przywróć absolutne pozycjonowanie i stałą wysokość
       inner.style.position = "relative";
       inner.style.height = galleryHeight + "px";
 
       items.forEach((item, idx) => {
-        // Nadpisz dowolne display:none i ustaw block!important
-        item.style.setProperty("display", idx === firstIndex ? "block" : "none", "important");
+        // Usuń dowolne display:none i wymuś block!important
+        item.style.setProperty(
+          "display",
+          idx === initialIndex ? "block" : "none",
+          "important"
+        );
+        // Ustaw absolutne pozycjonowanie
         item.style.position = "absolute";
         item.style.top = "0";
         item.style.left = "0";
         item.style.width = "100%";
         item.style.height = "100%";
-        item.style.visibility = "visible";
-
-        if (idx === firstIndex) {
+        // Ustaw opacity i z-index: pierwszy widoczny, reszta ukryta
+        if (idx === initialIndex) {
           item.style.opacity = "1";
           item.style.zIndex = "1";
         } else {
           item.style.opacity = "0";
           item.style.zIndex = "0";
         }
+        item.style.visibility = "visible";
       });
     }
 
@@ -368,17 +374,10 @@ function initGalleryNextAnimations() {
       measureAndSetup();
     }
 
-    // Obsługa kliknięcia z crossfade i pętlą
+    // Obsługa kliknięcia: crossfade z pętlą
     button.addEventListener("click", () => {
-      // Znajdź aktualnie widoczny (opacity > 0.5)
-      let currentIndex = items.findIndex(
-        (el) => parseFloat(window.getComputedStyle(el).opacity) > 0.5
-      );
-      if (currentIndex < 0) currentIndex = firstIndex;
-
-      const current = items[currentIndex];
-      // Loop: jeśli aktualny to ostatni, weź index 0, w przeciwnym razie +1
       const nextIndex = (currentIndex + 1) % items.length;
+      const current = items[currentIndex];
       const next = items[nextIndex];
 
       // Przygotuj next: display:block!important, opacity 0, zIndex wyższy
@@ -394,16 +393,17 @@ function initGalleryNextAnimations() {
         duration: fadeDuration,
         ease: "power1.out",
         onComplete: () => {
-          // Po fade-in ukryj current: display:none!important, zIndex=0
+          // Po fade-in ukryj current: display: none!important, zIndex: 0
           current.style.setProperty("display", "none", "important");
           current.style.zIndex = "0";
-          // Zaktualizuj firstIndex, by next stał się nowym startem
-          firstIndex = nextIndex;
-        }
+          // Zaktualizuj currentIndex na nextIndex
+          currentIndex = nextIndex;
+        },
       });
     });
   });
 }
+
 
 // ------------------------------------------------------
 // Główna funkcja inicjalizująca wszystkie animacje
