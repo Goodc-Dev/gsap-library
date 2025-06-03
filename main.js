@@ -404,6 +404,50 @@ function initGalleryNextAnimations() {
   });
 }
 
+// ------------------------------------------------------
+// Inicjalizacja animacji “hover arrow” (klasa .gasp-hover-arrow)
+// ------------------------------------------------------
+// Struktura HTML-buttona może wyglądać tak:
+//
+// <div class="button is-icon gasp-hover-arrow">
+//   <div>Czytaj więcej</div>
+//   <div class="icon-arow w-embed">
+//     <svg …>…</svg>
+//   </div>
+// </div>
+//
+// Skrypt automatycznie wyszukuje w obrębie .gasp-hover-arrow pierwszy
+// element <svg> (czyli strzałkę) i na hover przesuwa go w prawo.
+// Nie wymaga twardego odwoływania się do “icon-arow” czy innej klasy.
+// ------------------------------------------------------
+function initHoverArrowAnimations() {
+  document.querySelectorAll(".gasp-hover-arrow").forEach((btn) => {
+    // Znajdź w przycisku ikonę – szukamy pierwszego <svg>
+    const arrow = btn.querySelector("svg");
+    if (!arrow) return;
+
+    // Ustawiamy transform-origin (w razie potrzeby, tu środek wysokości)
+    arrow.style.transformOrigin = "center center";
+
+    // Przy hoverze animujemy x (przesunięcie w prawo)
+    btn.addEventListener("mouseenter", () => {
+      gsap.to(arrow, {
+        x: 5,            // przesunięcie o 5px w prawo (zmień według uznania)
+        duration: 0.2,
+        ease: "power2.out"
+      });
+    });
+
+    // Przy mouseleave cofamy do x=0
+    btn.addEventListener("mouseleave", () => {
+      gsap.to(arrow, {
+        x: 0,
+        duration: 0.2,
+        ease: "power2.in"
+      });
+    });
+  });
+}
 
 // ------------------------------------------------------
 // Główna funkcja inicjalizująca wszystkie animacje
@@ -417,6 +461,7 @@ function initAnimations() {
   initUnderlineAnimations();
   initGalleryLoopAnimations();
   initGalleryNextAnimations();
+  initHoverArrowAnimations();
 }
 
 // ------------------------------------------------------
