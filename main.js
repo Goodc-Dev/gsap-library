@@ -305,38 +305,48 @@ function initGalleryLoopAnimations() {
 }
 
 // ------------------------------------------------------
-// Inicjalizacja “gallery next” z crossfade i nadpisaniem dnone (!important)
-// (klasa .gasp-gallery-next / .gasp-gallery-inner)
+// Inicjalizacja “gallery next” z crossfade i obsługą dowolnego display: none
+// (klasa .gasp-gallery / .gasp-gallery-inner / .gasp-gallery-next)
 // ------------------------------------------------------
 function initGalleryNextAnimations() {
-  document.querySelectorAll(".gasp-gallery-next").forEach((button) => {
-    const container = button.closest(".gasp-gallery");
-    if (!container) return;
+  document.querySelectorAll(".gasp-gallery").forEach((container) => {
     const inner = container.querySelector(".gasp-gallery-inner");
-    if (!inner) return;
+    const button = container.querySelector(".gasp-gallery-next");
+    if (!inner || !button) return;
 
+    // 1) Przygotuj wszystkie dzieci .gasp-gallery-inner
     const items = Array.from(inner.children);
-    if (!items.length) return;
+    if (items.length === 0) return;
 
-    // 1) Ustawiamy absolutne pozycjonowanie i początkowy stan dzieci:
     inner.style.position = "relative";
+
+    // a) Znajdź pierwszy widoczny element (compute display ≠ "none")
+    let firstIndex = items.findIndex((el) => {
+      return window.getComputedStyle(el).display !== "none";
+    });
+    if (firstIndex < 0) firstIndex = 0;
+
     items.forEach((item, idx) => {
-      // Usuń klasę dnone i wymuś display: block !important
-      if (item.classList.contains("dnone")) {
-        item.classList.remove("dnone");
-      }
-      item.style.setProperty("display", idx === 0 ? "block" : "none", "important");
+      // b) Wymuś display: block !important dla wszystkich, aby unikać dowolnej klasy display:none
+      item.style.setProperty("display", "block", "important");
+      // c) Absolutne pozycjonowanie na całą szer./wys. rodzica
       item.style.position = "absolute";
       item.style.top = "0";
       item.style.left = "0";
       item.style.width = "100%";
       item.style.height = "100%";
-      item.style.opacity = idx === 0 ? "1" : "0";
-      item.style.zIndex = idx === 0 ? "1" : "0";
+      // d) Ustaw opacity i z-index: tylko pierwszy widoczny, pozostałe ukryte
+      if (idx === firstIndex) {
+        item.style.opacity = "1";
+        item.style.zIndex = "1";
+      } else {
+        item.style.opacity = "0";
+        item.style.zIndex = "0";
+      }
     });
 
-    // 2) Ustaw wysokość inner na wysokość pierwszego elementu:
-    const first = items[0];
+    // 2) Ustaw wysokość inner według pierwszego elementu
+    const first = items[firstIndex];
     function setHeight() {
       const rect = first.getBoundingClientRect();
       inner.style.height = rect.height + "px";
@@ -348,38 +358,40 @@ function initGalleryNextAnimations() {
       setHeight();
     }
 
-    // 3) Obsługa kliknięcia: crossfade z override display:none
+    // 3) Obsługa kliknięcia na przycisk .gasp-gallery-next
     button.addEventListener("click", () => {
-      // Znajdź bieżący element (display ≠ "none")
+      // a) Znajdź aktualnie widoczny element: display:block (!) i opacity > 0.5
       let currentIndex = items.findIndex((el) => {
-        return window.getComputedStyle(el).display !== "none";
+        return (
+          window.getComputedStyle(el).display !== "none" &&
+          parseFloat(window.getComputedStyle(el).opacity) > 0.5
+        );
       });
-      if (currentIndex < 0) currentIndex = 0;
+      if (currentIndex < 0) currentIndex = firstIndex;
       const current = items[currentIndex];
+
+      // b) Oblicz indeks następnego w pętli
       const nextIndex = (currentIndex + 1) % items.length;
       const next = items[nextIndex];
 
-      // Przygotuj next: override display:block !important i ustal opacity/zIndex
+      // c) Przygotuj next: display:block, opacity:0, z-index wyższy niż current
       next.style.setProperty("display", "block", "important");
       next.style.opacity = "0";
       next.style.zIndex = "2";
       current.style.zIndex = "1";
 
       const fadeDuration = 0.5;
-      // Fade-in next
+      // d) Fade-in next (0→1)
       gsap.to(next, {
         opacity: 1,
         duration: fadeDuration,
-        ease: "power1.out"
-      });
-      // Fade-out current, po zakończeniu fade-out ukryj z override display:none !important
-      gsap.to(current, {
-        opacity: 0,
-        duration: fadeDuration,
         ease: "power1.out",
         onComplete: () => {
+          // e) Po fade-in ukryj current: display:none, z-index:0
           current.style.setProperty("display", "none", "important");
           current.style.zIndex = "0";
+          // f) Zaktualizuj pierwszy widoczny, by next był bazą
+          firstIndex = nextIndex;
         }
       });
     });
