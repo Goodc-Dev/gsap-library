@@ -405,40 +405,31 @@ function initGalleryNextAnimations() {
 }
 
 // ------------------------------------------------------
-// Inicjalizacja animacji “hover arrow” (klasa .gasp-hover-arrow)
+// Inicjalizacja animacji “hover arrow” uniwersalnie dla <svg> i <img>
+// (klasa .gasp-hover-arrow)
 // ------------------------------------------------------
-// Struktura HTML-buttona może wyglądać tak:
-//
-// <div class="button is-icon gasp-hover-arrow">
-//   <div>Czytaj więcej</div>
-//   <div class="icon-arow w-embed">
-//     <svg …>…</svg>
-//   </div>
-// </div>
-//
-// Skrypt automatycznie wyszukuje w obrębie .gasp-hover-arrow pierwszy
-// element <svg> (czyli strzałkę) i na hover przesuwa go w prawo.
-// Nie wymaga twardego odwoływania się do “icon-arow” czy innej klasy.
+// Działa, gdy w elemencie z klasą .gasp-hover-arrow mamy ikonę <svg> lub <img>.
+// Animuje ją na hover (przesunięcie w prawo).
 // ------------------------------------------------------
 function initHoverArrowAnimations() {
   document.querySelectorAll(".gasp-hover-arrow").forEach((btn) => {
-    // Znajdź w przycisku ikonę – szukamy pierwszego <svg>
-    const arrow = btn.querySelector("svg");
+    // Znajdź w przycisku pierwszą ikonę: <svg> lub <img>
+    const arrow = btn.querySelector("svg, img");
     if (!arrow) return;
 
-    // Ustawiamy transform-origin (w razie potrzeby, tu środek wysokości)
+    // Ustaw transform-origin (środek wysokości) – przyda się przy niektórych SVG/IMG
     arrow.style.transformOrigin = "center center";
 
-    // Przy hoverze animujemy x (przesunięcie w prawo)
+    // Na hover: przesuwamy w prawo o 5px
     btn.addEventListener("mouseenter", () => {
       gsap.to(arrow, {
-        x: 5,            // przesunięcie o 5px w prawo (zmień według uznania)
+        x: 5,            // szerokość przesunięcia (px)
         duration: 0.2,
         ease: "power2.out"
       });
     });
 
-    // Przy mouseleave cofamy do x=0
+    // Po opuszczeniu hover: cofamy do x=0
     btn.addEventListener("mouseleave", () => {
       gsap.to(arrow, {
         x: 0,
