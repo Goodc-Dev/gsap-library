@@ -305,6 +305,57 @@ function initGalleryLoopAnimations() {
 }
 
 // ------------------------------------------------------
+// Inicjalizacja “gallery next” (klasa .gasp-gallery-next / .gasp-gallery-inner)
+// ------------------------------------------------------
+// 1) W HTML wystarczy mieć:
+//
+// <div class="gasp-gallery">
+//   <div class="gasp-gallery-inner">
+//     <!-- dowolne elementy (img, div itp.), pierwszy widoczny, pozostałe style="display: none;" -->
+//   </div>
+//   <img src="plus.svg" class="gasp-gallery-next" alt="dalej">
+// </div>
+//
+// Skrypt:
+//
+// - nie wymaga żadnych specjalnych klas na dzieciach .gasp-gallery-inner
+// - po kliknięciu .gasp-gallery-next przełącza widoczność kolejnych dzieci
+// ------------------------------------------------------
+function initGalleryNextAnimations() {
+  document.querySelectorAll(".gasp-gallery-next").forEach((button) => {
+    button.addEventListener("click", () => {
+      // a) Znajdź najbliższy rodzic z klasą .gasp-gallery
+      const container = button.closest(".gasp-gallery");
+      if (!container) return;
+
+      // b) Wewnątrz container znajdź .gasp-gallery-inner
+      const inner = container.querySelector(".gasp-gallery-inner");
+      if (!inner) return;
+
+      // c) Weź wszystkie bezpośrednie dzieci (Element.children)
+      const items = Array.from(inner.children);
+      if (items.length === 0) return;
+
+      // d) Znajdź indeks aktualnie widocznego (display ≠ "none")
+      let currentIndex = items.findIndex((el) => {
+        const disp = window.getComputedStyle(el).display;
+        return disp !== "none";
+      });
+      if (currentIndex < 0) currentIndex = 0;
+
+      // e) Ukryj bieżący element
+      items[currentIndex].style.display = "none";
+
+      // f) Oblicz indeks następnego (z pętlą)
+      const nextIndex = (currentIndex + 1) % items.length;
+
+      // g) Pokaż element nextIndex
+      items[nextIndex].style.display = "block";
+    });
+  });
+}
+
+// ------------------------------------------------------
 // Główna funkcja inicjalizująca wszystkie animacje
 // ------------------------------------------------------
 function initAnimations() {
@@ -315,6 +366,7 @@ function initAnimations() {
   initHoverScaleAnimations();
   initUnderlineAnimations();
   initGalleryLoopAnimations();
+  initGalleryNextAnimations();
 }
 
 // ------------------------------------------------------
