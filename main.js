@@ -203,6 +203,63 @@ function initUnderlineAnimations() {
 }
 
 // ------------------------------------------------------
+// Inicjalizacja animacji “gallery loop” (klasa .gasp-gallery-loop)
+// ------------------------------------------------------
+// Działa na dowolne elementy wewnątrz kontenera (.gasp-gallery-loop),
+// animuje je fade‐in/fade‐out w pętli po scrollu.
+// ------------------------------------------------------
+function initGalleryLoopAnimations() {
+  const galleries = document.querySelectorAll(".gasp-gallery-loop");
+
+  galleries.forEach((gallery) => {
+    const items = Array.from(gallery.children);
+    if (items.length === 0) return;
+
+    // 1) Ustaw kontener i pozycjonowanie dzieci
+    gallery.style.position = "relative";
+    items.forEach((item, index) => {
+      item.style.position = "absolute";
+      item.style.top = "0";
+      item.style.left = "0";
+      item.style.width = "100%";
+      item.style.height = "100%";
+      item.style.opacity = index === 0 ? "1" : "0";
+    });
+
+    // 2) Stwórz timeline loopujący przez wszystkie elementy
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: gallery,
+        start: "top 90%",
+        toggleActions: "play none none none"
+      },
+      repeat: -1   // nieskończona pętla
+    });
+
+    const fadeDuration = 1;     // czas crossfade (sekundy)
+    const stayDuration = 2;     // czas pełnej widoczności (sekundy)
+
+    // 3) Dla każdego elementu dodajemy fragment timeline’u:
+    //    – utrzymaj aktualny element przez stayDuration,
+    //    – potem crossfade do następnego przez fadeDuration.
+    items.forEach((_, i) => {
+      const nextIndex = (i + 1) % items.length;
+      tl.to(items[i], {
+        opacity: 0,
+        duration: fadeDuration,
+        ease: "power1.out"
+      }, `+=${stayDuration}`);
+      tl.to(items[nextIndex], {
+        opacity: 1,
+        duration: fadeDuration,
+        ease: "power1.out"
+      }, `-=${fadeDuration}`); 
+      // Użycie `"-=" + fadeDuration` zapewnia crossfade między starym a nowym.
+    });
+  });
+}
+
+// ------------------------------------------------------
 // Główna funkcja inicjalizująca wszystkie animacje
 // ------------------------------------------------------
 function initAnimations() {
@@ -212,6 +269,7 @@ function initAnimations() {
   initHoverOverlayAnimations();
   initHoverScaleAnimations();
   initUnderlineAnimations();
+  initGalleryLoopAnimations();
 }
 
 // ------------------------------------------------------
