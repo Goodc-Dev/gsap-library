@@ -205,8 +205,8 @@ function initUnderlineAnimations() {
 // ------------------------------------------------------
 // Inicjalizacja animacji “gallery loop” (klasa .gasp-gallery-loop)
 // ------------------------------------------------------
-// Działa na dowolne elementy wewnątrz kontenera (.gasp-gallery-loop),
-// animuje je fade‐in/fade‐out w pętli po scrollu.
+// Obsługuje ukryte elementy (np. z display: none) – najpierw je pokazuje,
+// a następnie steruje ich opacity.
 // ------------------------------------------------------
 function initGalleryLoopAnimations() {
   const galleries = document.querySelectorAll(".gasp-gallery-loop");
@@ -215,46 +215,61 @@ function initGalleryLoopAnimations() {
     const items = Array.from(gallery.children);
     if (items.length === 0) return;
 
-    // 1) Ustaw kontener i pozycjonowanie dzieci
+    // 1) Ustaw kontener na relative, aby dzieci absolute działały poprawnie
     gallery.style.position = "relative";
+    gallery.style.overflow = "hidden";
+
+    // 2) Dla każdego dziecka:
     items.forEach((item, index) => {
+      // Jeśli element ma klasę dnone (display: none), usuń ją z warstwy stylu
+      // (lub nadpisz stylem inline, by element stał się widoczny do animacji)
+      if (item.classList.contains("dnone")) {
+        item.classList.remove("dnone");
+      }
+      // Ustaw podstawowe style absolutnego pozycjonowania:
       item.style.position = "absolute";
       item.style.top = "0";
       item.style.left = "0";
       item.style.width = "100%";
       item.style.height = "100%";
+
+      // Wymuś display (usuwa ewentualne display: none w CSS)
+      // Dla obrazów: display: block; dla div-ów: też display: block przy absolute
+      item.style.display = "block";
+
+      // Początkowo tylko pierwszy element jest widoczny (opacity 1), pozostałe 0
       item.style.opacity = index === 0 ? "1" : "0";
     });
 
-    // 2) Stwórz timeline loopujący przez wszystkie elementy
+    // 3) Stwórz timeline loopujący przez wszystkie elementy
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: gallery,
         start: "top 90%",
         toggleActions: "play none none none"
       },
-      repeat: -1   // nieskończona pętla
+      repeat: -1 // nieskończona pętla
     });
 
-    const fadeDuration = 1;     // czas crossfade (sekundy)
-    const stayDuration = 2;     // czas pełnej widoczności (sekundy)
+    const fadeDuration = 1;  // długość crossfade’u w sekundach
+    const stayDuration = 2;  // czas pełnej widoczności w sekundach
 
-    // 3) Dla każdego elementu dodajemy fragment timeline’u:
-    //    – utrzymaj aktualny element przez stayDuration,
-    //    – potem crossfade do następnego przez fadeDuration.
+    // 4) Dodaj do timeline fragmenty dla każdego elementu:
     items.forEach((_, i) => {
-      const nextIndex = (i + 1) % items.length;
-      tl.to(items[i], {
+      const current = items[i];
+      const next = items[(i + 1) % items.length];
+      // 4a) Po stayDuration sekundach zacznij fade-out current
+      tl.to(current, {
         opacity: 0,
         duration: fadeDuration,
         ease: "power1.out"
       }, `+=${stayDuration}`);
-      tl.to(items[nextIndex], {
+      // 4b) W tym samym czasie (ostatnia sekunda crossfade’u) fade-in next
+      tl.to(next, {
         opacity: 1,
         duration: fadeDuration,
         ease: "power1.out"
-      }, `-=${fadeDuration}`); 
-      // Użycie `"-=" + fadeDuration` zapewnia crossfade między starym a nowym.
+      }, `-=${fadeDuration}`);
     });
   });
 }
