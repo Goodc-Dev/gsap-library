@@ -205,8 +205,9 @@ function initUnderlineAnimations() {
 // ------------------------------------------------------
 // Inicjalizacja animacji “gallery loop” (klasa .gasp-gallery-loop)
 // ------------------------------------------------------
-// Obsługuje ukryte elementy (np. z display: none) – najpierw je pokazuje,
-// a następnie steruje ich opacity.
+// Ulepszona wersja: uwzględnia w100p (display: inline-block, width:100%) 
+// i ustawia wysokość kontenera na wysokość pierwszego elementu, dzięki czemu
+// absolutnie pozycjonowane dzieci są widoczne poprawnie.
 // ------------------------------------------------------
 function initGalleryLoopAnimations() {
   const galleries = document.querySelectorAll(".gasp-gallery-loop");
@@ -215,64 +216,82 @@ function initGalleryLoopAnimations() {
     const items = Array.from(gallery.children);
     if (items.length === 0) return;
 
-    // 1) Ustaw kontener na relative, aby dzieci absolute działały poprawnie
+    // 1) Ustaw kontener na relative i overflow:hidden
     gallery.style.position = "relative";
     gallery.style.overflow = "hidden";
 
-    // 2) Dla każdego dziecka:
-    items.forEach((item, index) => {
-      // Jeśli element ma klasę dnone (display: none), usuń ją z warstwy stylu
-      // (lub nadpisz stylem inline, by element stał się widoczny do animacji)
-      if (item.classList.contains("dnone")) {
-        item.classList.remove("dnone");
-      }
-      // Ustaw podstawowe style absolutnego pozycjonowania:
-      item.style.position = "absolute";
-      item.style.top = "0";
-      item.style.left = "0";
-      item.style.width = "100%";
-      item.style.height = "100%";
+    // 2) Poczekaj, aż pierwsze <img> w galerii się załaduje (jeśli jest <img>)
+    const firstItem = items[0];
+    const waitForImage = firstItem.tagName === "IMG"
+      ? new Promise((resolve) => {
+          if (firstItem.complete) {
+            resolve();
+          } else {
+            firstItem.addEventListener("load", resolve);
+            // W razie gdyby źle podpięty: 
+            firstItem.addEventListener("error", resolve);
+          }
+        })
+      : Promise.resolve();
 
-      // Wymuś display (usuwa ewentualne display: none w CSS)
-      // Dla obrazów: display: block; dla div-ów: też display: block przy absolute
-      item.style.display = "block";
+    waitForImage.then(() => {
+      // 3) Ustaw wysokość galerii na wysokość pierwszego elementu
+      const rect = firstItem.getBoundingClientRect();
+      gallery.style.height = rect.height + "px";
 
-      // Początkowo tylko pierwszy element jest widoczny (opacity 1), pozostałe 0
-      item.style.opacity = index === 0 ? "1" : "0";
-    });
+      // 4) Usuń klasę dnone i ustaw wszystkie elementy absolutnie
+      items.forEach((item, idx) => {
+        if (item.classList.contains("dnone")) {
+          item.classList.remove("dnone");
+        }
+        // Jeśli element to <img w100p>, zostaw jego width:100% i display:inline-block
+        // ale i tak ustawiamy absolutne pozycjonowanie, a height zostawiamy auto
+        item.style.position = "absolute";
+        item.style.top = "0";
+        item.style.left = "0";
+        item.style.width = "100%";       // w100p wymusza width:100%
+        item.style.height = "auto";      // pozwala zachować proporcje
+        item.style.display = "block";    // do animowania opacity
 
-    // 3) Stwórz timeline loopujący przez wszystkie elementy
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: gallery,
-        start: "top 90%",
-        toggleActions: "play none none none"
-      },
-      repeat: -1 // nieskończona pętla
-    });
+        // Początkowo tylko pierwszy element ma opacity:1
+        item.style.opacity = idx === 0 ? "1" : "0";
+      });
 
-    const fadeDuration = 1;  // długość crossfade’u w sekundach
-    const stayDuration = 2;  // czas pełnej widoczności w sekundach
+      // 5) Tworzymy timeline loopujący po elementach
+      const fadeDuration = 1;  // sekundy na crossfade
+      const stayDuration = 2;  // sekundy widoczności
 
-    // 4) Dodaj do timeline fragmenty dla każdego elementu:
-    items.forEach((_, i) => {
-      const current = items[i];
-      const next = items[(i + 1) % items.length];
-      // 4a) Po stayDuration sekundach zacznij fade-out current
-      tl.to(current, {
-        opacity: 0,
-        duration: fadeDuration,
-        ease: "power1.out"
-      }, `+=${stayDuration}`);
-      // 4b) W tym samym czasie (ostatnia sekunda crossfade’u) fade-in next
-      tl.to(next, {
-        opacity: 1,
-        duration: fadeDuration,
-        ease: "power1.out"
-      }, `-=${fadeDuration}`);
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: gallery,
+          start: "top 90%",
+          toggleActions: "play none none none"
+        },
+        repeat: -1
+      });
+
+      items.forEach((_, i) => {
+        const current = items[i];
+        const next = items[(i + 1) % items.length];
+
+        // Fade-in elementu next po stayDuration
+        tl.to(next, {
+          opacity: 1,
+          duration: fadeDuration,
+          ease: "power1.out"
+        }, `+=${stayDuration}`);
+
+        // Jednoczesny fade-out elementu current w ostatniej sekundzie crossfade’u
+        tl.to(current, {
+          opacity: 0,
+          duration: fadeDuration,
+          ease: "power1.out"
+        }, `-=${fadeDuration}`);
+      });
     });
   });
 }
+
 
 // ------------------------------------------------------
 // Główna funkcja inicjalizująca wszystkie animacje
