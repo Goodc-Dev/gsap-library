@@ -18,7 +18,7 @@ function initSlideInAnimations() {
   slideItems.forEach((item) => {
     const isStaggered = item.classList.contains("gsap-slide-in-stagger");
 
-    if (isStaggered) {
+    if (isStaggered) { 
       const children = item.children;
       gsap.from(children, {
         y: 50,
@@ -28,7 +28,7 @@ function initSlideInAnimations() {
         stagger: 0.2,
         scrollTrigger: {
           trigger: item,
-          start: "top 90%",
+          start: "top 90%", 
           toggleActions: "play none none reset"
         }
       });
