@@ -113,7 +113,7 @@ function initHoverOverlayAnimations() {
     overlay.style.width = "100%";
     overlay.style.height = "100%";
     overlay.style.opacity = "0";
-    overlay.style.pointerEvents = "none";
+    overlay.style.pointerEvents = "none"; // <-- dodano pointer-events: none
     // Tło (background-image/ color) definiujesz w Designerze na klasie .gasp-hover-overlay
 
     // 3) Animacja GSAP: fade-in na hover rodzica, fade-out po wyjściu
