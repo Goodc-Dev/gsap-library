@@ -1,4 +1,3 @@
-<script>
 // ------------------------------------------------------
 // Funkcja rejestrująca pluginy GSAP (ScrollTrigger)
 // ------------------------------------------------------
@@ -493,4 +492,3 @@ function initAnimations() {
 // Wywołanie inicjalizacji po załadowaniu DOM
 // ------------------------------------------------------
 document.addEventListener("DOMContentLoaded", initAnimations);
-</script>
