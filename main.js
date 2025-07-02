@@ -454,18 +454,22 @@ function initHoverArrowAnimations() {
 }
 
 // ------------------------------------------------------
-// Inicjalizacja “pin” (klasa .gsap-pin)
+// Inicjalizacja “pin” (klasa .gsap-pin), ale z dynamicznym offsetem
 // ------------------------------------------------------
 function initPinAnimations() {
   document.querySelectorAll(".gsap-pin").forEach(pinEl => {
-    // szukamy kontenera, w którym ma się „odpiąć” pin:
     const container = pinEl.closest(".medical_procedure") || pinEl.parentElement;
     if (!container) return;
 
+    // 1) znajdź swój nav i policz jego wysokość
+    const nav = document.querySelector(".nav_fixed");
+    const offset = nav ? nav.offsetHeight : 0;
+
+    // 2) stwórz ScrollTrigger z dynamicznym start-offsetem
     ScrollTrigger.create({
       trigger:    container,
-      start:      "top top+=20",    // start, gdy top kontenera dotknie 20px od góry viewportu
-      end:        "bottom top",     // koniec, gdy dół kontenera dotknie top viewportu
+      start:      `top ${offset}px`,  // dopasowuje się do wysokości .nav_fixed
+      end:        "bottom top",
       pin:        pinEl,
       pinSpacing: false
     });
