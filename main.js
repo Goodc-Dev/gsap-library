@@ -455,6 +455,25 @@ function initHoverArrowAnimations() {
 }
 
 // ------------------------------------------------------
+// Inicjalizacja “pin” (klasa .gsap-pin)
+// ------------------------------------------------------
+function initPinAnimations() {
+  document.querySelectorAll(".gsap-pin").forEach(pinEl => {
+    // szukamy kontenera, w którym ma się „odpiąć” pin:
+    const container = pinEl.closest(".medical_procedure") || pinEl.parentElement;
+    if (!container) return;
+
+    ScrollTrigger.create({
+      trigger:    container,
+      start:      "top top+=20",    // start, gdy top kontenera dotknie 20px od góry viewportu
+      end:        "bottom top",     // koniec, gdy dół kontenera dotknie top viewportu
+      pin:        pinEl,
+      pinSpacing: false
+    });
+  });
+}
+
+// ------------------------------------------------------
 // Główna funkcja inicjalizująca wszystkie animacje
 // ------------------------------------------------------
 function initAnimations() {
@@ -467,6 +486,7 @@ function initAnimations() {
   initGalleryLoopAnimations();
   initGalleryNextAnimations();
   initHoverArrowAnimations();
+  initPinAnimations();
 }
 
 // ------------------------------------------------------
