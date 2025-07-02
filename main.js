@@ -462,19 +462,28 @@ function initPinAnimations() {
       ? parseInt(window.getComputedStyle(nav).zIndex, 10) || 0
       : 0;
 
-    // 2) znajdź kontener, jak wcześniej
+    // 2) znajdź główny kontener, jak wcześniej
     const container = pinEl.closest(".medical_procedure") || pinEl.parentElement;
     if (!container) return;
 
-    // 3) ustaw inline z-index, by pinEl był tuż pod nav
+    // 3) ustaw z-index, by pinEl był pod nav
     pinEl.style.zIndex = navZ - 1;
 
-    // 4) twórz ScrollTrigger z dynamicznym start-offsetem
+    // 4) znajdź element, którego top będzie wyznaczał koniec pinowania
+    const section = pinEl.closest(".section_treatment_timeline");
+    const endEl = section
+      ? section.querySelector(".history-wrapper-center")
+      : null;
+
+    // 5) oblicz w pikselach, gdzie jest dół pinEl względem viewportu:
+    //    pinEl.top = offset, pinEl.bottom = offset + pinEl.offsetHeight
+    const endOffset = offset + pinEl.offsetHeight;
+
     ScrollTrigger.create({
       trigger:     container,
-      start:       `top ${offset}px`,          // bez zmian
-      endTrigger:  ".history-wrapper-center",   // tu odpinamy...
-      end:         "bottom top",               // ...gdy dół history-wrapper-center minie top viewportu
+      start:       `top ${offset}px`,               // start: jak wcześniej
+      endTrigger:  endEl || container,              // koniec: top endEl
+      end:         `top ${endOffset}px`,            // odpinamy gdy top endEl dotknie y = endOffset
       pin:         pinEl,
       pinSpacing:  false,
     });
