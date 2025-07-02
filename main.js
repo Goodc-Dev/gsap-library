@@ -453,35 +453,30 @@ function initHoverArrowAnimations() {
   });
 }
 
-// ------------------------------------------------------
-// Inicjalizacja “pin” (klasa .gsap-pin), z dynamicznym offsetem i z-index
-// ------------------------------------------------------
 function initPinAnimations() {
   document.querySelectorAll(".gsap-pin").forEach(pinEl => {
     // 1) znajdź nav i policz jego wysokość oraz z-index
-    const nav = document.querySelector(".nav_fixed");
+    const nav    = document.querySelector(".nav_fixed");
     const offset = nav ? nav.offsetHeight : 0;
-    const navZ    = nav
+    const navZ   = nav
       ? parseInt(window.getComputedStyle(nav).zIndex, 10) || 0
       : 0;
 
-    // 2) podepnij pinEl pod odpowiedni kontener (jak wcześniej)
+    // 2) znajdź kontener, jak wcześniej
     const container = pinEl.closest(".medical_procedure") || pinEl.parentElement;
     if (!container) return;
 
-    // 3) ustaw inline z-index na pinowany element
-    //    chce mieć zawsze o 1 mniej niż nav, czyli pod nim, ale nad resztą
+    // 3) ustaw inline z-index, by pinEl był tuż pod nav
     pinEl.style.zIndex = navZ - 1;
 
     // 4) twórz ScrollTrigger z dynamicznym start-offsetem
     ScrollTrigger.create({
-      trigger:    container,
-      start:      `top ${offset}px`,
-      end:        "bottom top",
-      pin:        pinEl,
-      pinSpacing: false,
-      // opcjonalnie możesz w callbackach przywracać z-index,
-      // ale jeśli nie zmieniasz go nigdzie indziej, to nie jest potrzebne
+      trigger:     container,
+      start:       `top ${offset}px`,          // bez zmian
+      endTrigger:  ".history-wrapper-center",   // tu odpinamy...
+      end:         "bottom top",               // ...gdy dół history-wrapper-center minie top viewportu
+      pin:         pinEl,
+      pinSpacing:  false,
     });
   });
 }
