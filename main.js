@@ -1,3 +1,4 @@
+<script>
 // ------------------------------------------------------
 // Funkcja rejestrująca pluginy GSAP (ScrollTrigger)
 // ------------------------------------------------------
@@ -113,15 +114,28 @@ function initHoverOverlayAnimations() {
     overlay.style.width = "100%";
     overlay.style.height = "100%";
     overlay.style.opacity = "0";
-    overlay.style.pointerEvents = "none"; // <-- dodano pointer-events: none
-    // Tło (background-image/ color) definiujesz w Designerze na klasie .gasp-hover-overlay
+    overlay.style.pointerEvents = "none"; // <-- już masz pointer-events: none
 
-    // 3) Animacja GSAP: fade-in na hover rodzica, fade-out po wyjściu
+    // DODANE: na starcie dajemy z-index: -1, żeby nie blokował dropdownów
+    overlay.style.zIndex = "-1";
+
+    // 3) Animacja GSAP: fade‐in na hover rodzica, fade‐out po wyjściu
     container.addEventListener("mouseenter", () => {
+      // Podbijamy z-index do 0 (albo innej wartości między resztą a nav),
+      // żeby overlay wyszedł nad treścią w sekcji, ale nie zasłonił menu
+      overlay.style.zIndex = "0";
       gsap.to(overlay, { opacity: 1, duration: 0.3, ease: "power2.out" });
     });
     container.addEventListener("mouseleave", () => {
-      gsap.to(overlay, { opacity: 0, duration: 0.3, ease: "power2.in" });
+      gsap.to(overlay, {
+        opacity: 0,
+        duration: 0.3,
+        ease: "power2.in",
+        onComplete: () => {
+          // Po zakończeniu fade-out cofamy z-index na -1, żeby dropdown znów działał
+          overlay.style.zIndex = "-1";
+        }
+      });
     });
   });
 }
@@ -459,3 +473,4 @@ function initAnimations() {
 // Wywołanie inicjalizacji po załadowaniu DOM
 // ------------------------------------------------------
 document.addEventListener("DOMContentLoaded", initAnimations);
+</script>
