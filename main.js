@@ -490,6 +490,7 @@ function initPinAnimations() {
   });
 }
 
+
 // ------------------------------------------------------
 // Główna funkcja inicjalizująca wszystkie animacje
 // ------------------------------------------------------
