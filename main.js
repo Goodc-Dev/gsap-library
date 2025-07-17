@@ -1,5 +1,5 @@
 // ------------------------------------------------------
-// Funkcja rejestrująca pluginy GSAP (ScrollTrigger)
+/// Funkcja rejestrująca pluginy GSAP (ScrollTrigger)
 // ------------------------------------------------------
 function registerGSAPPlugins() {
   if (typeof gsap !== "undefined" && typeof ScrollTrigger !== "undefined") {
