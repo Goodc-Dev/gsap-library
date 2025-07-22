@@ -117,28 +117,46 @@ function initProgressLineAnimations() {
 // ------------------------------------------------------
 function initFadeOutOnScrollAnimations() {
   document.querySelectorAll(".gsap-fade-out-on-scroll").forEach((el) => {
-    // ScrollTrigger z własnym warunkiem: tylko jeśli scrollY > 0
-    ScrollTrigger.create({
-      trigger: el,
-      start: "top center", // czyli środek viewportu
-      onEnter: () => {
-        if (window.scrollY === 0) return;
+    let hasScrolled = false;
 
-        gsap.to(el, {
-          opacity: 0,
-          duration: 0.5,
-          ease: "power2.out"
-        });
-      },
-      onLeaveBack: () => {
-        // Jeśli wracamy w górę – przywróć opacity (opcjonalne)
-        gsap.to(el, {
-          opacity: 1,
-          duration: 0.5,
-          ease: "power2.in"
-        });
+    // Reaguj tylko jeśli użytkownik faktycznie przewinął
+    const onScroll = () => {
+      if (window.scrollY > 0) {
+        hasScrolled = true;
+        window.removeEventListener("scroll", onScroll);
+        scrollTriggerInit();
       }
-    });
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    // Gdy użytkownik przewinie – uruchamiamy ScrollTrigger
+    const scrollTriggerInit = () => {
+      ScrollTrigger.create({
+        trigger: el,
+        start: "top center",
+        onEnter: () => {
+          gsap.to(el, {
+            opacity: 0,
+            duration: 0.5,
+            ease: "power2.out"
+          });
+        },
+        onLeaveBack: () => {
+          gsap.to(el, {
+            opacity: 1,
+            duration: 0.5,
+            ease: "power2.in"
+          });
+        }
+      });
+    };
+
+    // Dodatkowo: jeśli scrollY > 0 już na starcie (np. z hash/odświeżenia)
+    if (window.scrollY > 0) {
+      hasScrolled = true;
+      scrollTriggerInit();
+    }
   });
 }
 
