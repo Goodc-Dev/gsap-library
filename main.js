@@ -112,6 +112,37 @@ function initProgressLineAnimations() {
 }
 
 // ------------------------------------------------------
+// Inicjalizacja animacji “gsap-fade-out-on-scroll” (klasa .gsap-fade-out-on-scroll)
+// polega na zaniku elementu, który przekroczy połowę ekranu przy scrollowaniu w dół
+// ------------------------------------------------------
+function initFadeOutOnScrollAnimations() {
+  document.querySelectorAll(".gsap-fade-out-on-scroll").forEach((el) => {
+    // ScrollTrigger z własnym warunkiem: tylko jeśli scrollY > 0
+    ScrollTrigger.create({
+      trigger: el,
+      start: "top center", // czyli środek viewportu
+      onEnter: () => {
+        if (window.scrollY === 0) return;
+
+        gsap.to(el, {
+          opacity: 0,
+          duration: 0.5,
+          ease: "power2.out"
+        });
+      },
+      onLeaveBack: () => {
+        // Jeśli wracamy w górę – przywróć opacity (opcjonalne)
+        gsap.to(el, {
+          opacity: 1,
+          duration: 0.5,
+          ease: "power2.in"
+        });
+      }
+    });
+  });
+}
+
+// ------------------------------------------------------
 // Inicjalizacja animacji “hover overlay” (klasa .gasp-hover-overlay)
 // ------------------------------------------------------
 // Skrypt zakłada, że w HTML masz już <div class="gasp-hover-overlay"> wstawione
@@ -478,6 +509,7 @@ function initAnimations() {
   initGalleryNextAnimations();
   initHoverArrowAnimations();
   initProgressLineAnimations();
+  initFadeOutOnScrollAnimations();
 }
 
 // ------------------------------------------------------
