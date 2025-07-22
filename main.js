@@ -88,6 +88,30 @@ function initCounterAnimations() {
 }
 
 // ------------------------------------------------------
+// Inicjalizacja animacji “progress-line” (klasa .gsap-progress-line)
+// ------------------------------------------------------
+function initProgressLineAnimations() {
+  document.querySelectorAll(".gsap-progress-line").forEach((line) => {
+    // Ustaw styl transform-origin, jeśli nie ma
+    line.style.transformOrigin = "left center";
+
+    // Wyzeruj początkowy scaleX
+    gsap.set(line, { scaleX: 0 });
+
+    gsap.to(line, {
+      scaleX: 1,
+      duration: 1.8, // Dopasowane do countera
+      ease: "power1.out",
+      scrollTrigger: {
+        trigger: line,
+        start: "top 90%",
+        toggleActions: "play none none reset"
+      }
+    });
+  });
+}
+
+// ------------------------------------------------------
 // Inicjalizacja animacji “hover overlay” (klasa .gasp-hover-overlay)
 // ------------------------------------------------------
 // Skrypt zakłada, że w HTML masz już <div class="gasp-hover-overlay"> wstawione
@@ -453,6 +477,7 @@ function initAnimations() {
   initGalleryLoopAnimations();
   initGalleryNextAnimations();
   initHoverArrowAnimations();
+  initProgressLineAnimations();
 }
 
 // ------------------------------------------------------
