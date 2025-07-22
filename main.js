@@ -160,6 +160,36 @@ function initFadeOutOnScrollAnimations() {
   });
 }
 
+
+// ------------------------------------------------------
+// Inicjalizacja animacji “gsap-circle-border” (klasa .gsap-circle-border)
+// polega na rysowaniu koła, werunkiem jest koło w svg wpisane liniowo w kod
+// ------------------------------------------------------
+
+function initCircleBorderAnimations() {
+  document.querySelectorAll(".gsap-circle-border rect").forEach((rect) => {
+    const length = rect.getTotalLength();
+
+    // Reset startowy
+    gsap.set(rect, {
+      strokeDasharray: length,
+      strokeDashoffset: length
+    });
+
+    // Animacja rysowania od 270°
+    gsap.to(rect, {
+      strokeDashoffset: 0,
+      duration: 1.8,
+      ease: "power1.out",
+      scrollTrigger: {
+        trigger: rect,
+        start: "top 90%",
+        toggleActions: "play none none reset"
+      }
+    });
+  });
+}
+
 // ------------------------------------------------------
 // Inicjalizacja animacji “hover overlay” (klasa .gasp-hover-overlay)
 // ------------------------------------------------------
@@ -528,6 +558,7 @@ function initAnimations() {
   initHoverArrowAnimations();
   initProgressLineAnimations();
   initFadeOutOnScrollAnimations();
+  initCircleBorderAnimations();
 }
 
 // ------------------------------------------------------
