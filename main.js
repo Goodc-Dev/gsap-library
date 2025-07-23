@@ -28,7 +28,7 @@ function initSlideInAnimations() {
         stagger: 0.2,
         scrollTrigger: {
           trigger: item,
-          start: "top 90%", 
+          start: "top 70%", 
           toggleActions: "play none none reset"
         }
       });
@@ -40,7 +40,7 @@ function initSlideInAnimations() {
         ease: "power3.out",
         scrollTrigger: {
           trigger: item,
-          start: "top 90%",
+          start: "top 70%",
           toggleActions: "play none none reset"
         }
       });
@@ -73,7 +73,7 @@ function initCounterAnimations() {
       ease: "power1.out",
       scrollTrigger: {
         trigger: elem,
-        start: "top 90%",
+        start: "top 70%",
         toggleActions: "play none none none"
       },
       onUpdate: () => {
@@ -104,7 +104,7 @@ function initProgressLineAnimations() {
       ease: "power1.out",
       scrollTrigger: {
         trigger: line,
-        start: "top 90%",
+        start: "top 70%",
         toggleActions: "play none none reset"
       }
     });
@@ -183,7 +183,7 @@ function initCircleBorderAnimations() {
       ease: "power1.out",
       scrollTrigger: {
         trigger: rect,
-        start: "top 90%",
+        start: "top 70%",
         toggleActions: "play none none reset"
       }
     });
@@ -256,7 +256,7 @@ function initFadeInTextAnimations() {
         delay: masterDelay,
         scrollTrigger: {
           trigger: wrapper,
-          start: "top 90%",
+          start: "top 70%",
           toggleActions: "play none none reset"
         }
       });
