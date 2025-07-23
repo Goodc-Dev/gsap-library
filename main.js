@@ -190,6 +190,52 @@ function initCircleBorderAnimations() {
   });
 }
 
+
+
+// ------------------------------------------------------
+// Inicjalizacja animacji “fade-in liter po literze, linijka po linijce” (klasa .gsap-fade-in-text)
+// klasa na dawana na div w którym znajdują się paragrafy
+// ------------------------------------------------------
+function initFadeInTextAnimations() {
+  document.querySelectorAll(".gsap-fade-in-text").forEach((wrapper) => {
+    const paragraphs = wrapper.querySelectorAll("p");
+    let masterDelay = 0;
+
+    paragraphs.forEach((p) => {
+      const text = p.textContent.trim();
+      const letters = text.split("");
+      p.textContent = ""; // wyczyść
+
+      // Utwórz span dla każdej litery
+      letters.forEach((char) => {
+        const span = document.createElement("span");
+        span.textContent = char;
+        span.style.display = "inline-block";
+        span.style.opacity = "0";
+        p.appendChild(span);
+      });
+
+      // Animuj litery po kolei z przesuniętym czasem
+      const spans = p.querySelectorAll("span");
+      gsap.to(spans, {
+        opacity: 1,
+        duration: 0.3,
+        ease: "power2.out",
+        stagger: 0.03,
+        delay: masterDelay,
+        scrollTrigger: {
+          trigger: wrapper,
+          start: "top 90%",
+          toggleActions: "play none none reset"
+        }
+      });
+
+      // Oblicz czas trwania animacji tego paragrafu, żeby kolejny zacząć później
+      masterDelay += 0.03 * spans.length + 0.2; // dodaj przerwę między paragrafami
+    });
+  });
+}
+
 // ------------------------------------------------------
 // Inicjalizacja animacji “hover overlay” (klasa .gasp-hover-overlay)
 // ------------------------------------------------------
@@ -559,6 +605,7 @@ function initAnimations() {
   initProgressLineAnimations();
   initFadeOutOnScrollAnimations();
   initCircleBorderAnimations();
+  initFadeInTextAnimations();
 }
 
 // ------------------------------------------------------
