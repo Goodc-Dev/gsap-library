@@ -194,7 +194,10 @@ function initCircleBorderAnimations() {
 
 // ------------------------------------------------------
 // Inicjalizacja animacji “fade-in liter po literze, linijka po linijce” (klasa .gsap-fade-in-text)
-// klasa na dawana na div w którym znajdują się paragrafy
+// klasa nadawana na div w którym znajdują się paragrafy
+//   UWAGA PRZYPADEK ZE SWIPER JS
+// Dodaj po inicjalizacji Swiper: 
+// <script> swiper.on("slideChangeTransitionEnd", () => { ScrollTrigger.refresh();}); </script>
 // ------------------------------------------------------
 function initFadeInTextAnimations() {
   document.querySelectorAll(".gsap-fade-in-text").forEach((wrapper) => {
