@@ -202,22 +202,50 @@ function initFadeInTextAnimations() {
     let masterDelay = 0;
 
     paragraphs.forEach((p) => {
-      const text = p.textContent.trim();
-      const letters = text.split("");
-      p.textContent = ""; // wyczyść
+      const originalNodes = Array.from(p.childNodes);
+      p.textContent = ""; // wyczyść paragraf
+      const spanRefs = [];
 
-      // Utwórz span dla każdej litery
-      letters.forEach((char) => {
-        const span = document.createElement("span");
-        span.textContent = char;
-        span.style.display = "inline-block";
-        span.style.opacity = "0";
-        p.appendChild(span);
+      // Rekurencyjne przetwarzanie węzłów
+      function processNode(node, parent) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const text = node.textContent;
+          for (let char of text) {
+            const span = document.createElement("span");
+            span.textContent = char;
+            span.style.display = "inline-block";
+            span.style.opacity = "0";
+            parent.appendChild(span);
+            spanRefs.push(span);
+          }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const clone = document.createElement(node.nodeName.toLowerCase());
+          // Skopiuj atrybuty (np. <strong class="...">)
+          for (let attr of node.attributes) {
+            clone.setAttribute(attr.name, attr.value);
+          }
+
+          parent.appendChild(clone);
+
+          // Jeśli to <br>, nie zawiera dzieci
+          if (node.nodeName.toLowerCase() !== "br") {
+            Array.from(node.childNodes).forEach((child) => {
+              processNode(child, clone);
+            });
+          }
+        }
+      }
+
+      // Przetwórz cały paragraf
+      originalNodes.forEach((node) => {
+        processNode(node, p);
       });
 
-      // Animuj litery po kolei z przesuniętym czasem
-      const spans = p.querySelectorAll("span");
-      gsap.to(spans, {
+      // Ustaw białe znaki zachowane
+      p.style.whiteSpace = "pre-wrap";
+
+      // Animacja GSAP
+      gsap.to(spanRefs, {
         opacity: 1,
         duration: 0.3,
         ease: "power2.out",
@@ -230,12 +258,10 @@ function initFadeInTextAnimations() {
         }
       });
 
-      // Oblicz czas trwania animacji tego paragrafu, żeby kolejny zacząć później
-      masterDelay += 0.03 * spans.length + 0.2; // dodaj przerwę między paragrafami
+      masterDelay += 0.03 * spanRefs.length + 0.2;
     });
   });
 }
-
 // ------------------------------------------------------
 // Inicjalizacja animacji “hover overlay” (klasa .gasp-hover-overlay)
 // ------------------------------------------------------
