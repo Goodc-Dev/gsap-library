@@ -197,7 +197,7 @@ function initCircleBorderAnimations() {
 // klasa nadawana na div w którym znajdują się paragrafy
 //   UWAGA PRZYPADEK ZE SWIPER JS
 // Dodaj po inicjalizacji Swiper: 
-// <script> swiper.on("slideChangeTransitionEnd", () => { ScrollTrigger.refresh();}); </script>
+// (script) swiper.on("slideChangeTransitionEnd", () => { ScrollTrigger.refresh();}); (/script)
 // ------------------------------------------------------
 function initFadeInTextAnimations() {
   document.querySelectorAll(".gsap-fade-in-text").forEach((wrapper) => {
