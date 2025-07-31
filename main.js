@@ -53,18 +53,23 @@ function initSlideInAnimations() {
 // ------------------------------------------------------
 function initCounterAnimations() {
   const counters = document.querySelectorAll(".gsap-counter");
+  // regex: 1–3 cyfr, a potem zero lub więcej grup " spacja + 3 cyfry"
+  const numberRegex = /(\d{1,3}(?:[ ]\d{3})*)/;
 
   counters.forEach((elem) => {
     const originalText = elem.textContent.trim();
-    const match = originalText.match(/(\d+)/);
+    const match = originalText.match(numberRegex);
     if (!match) return;
 
+    // string z ewentualnymi spacjami, np. "41 231"
     const numberString = match[1];
-    const endValue = parseInt(numberString, 10);
+    // usuwamy wszystkie spacje przed parseInt
+    const endValue = parseInt(numberString.replace(/\s+/g, ""), 10);
     if (isNaN(endValue)) return;
 
     const template = originalText;
-    elem.textContent = template.replace(/(\d+)/, "0");
+    // podstawiamy tymczasowo "0"
+    elem.textContent = template.replace(numberRegex, "0");
 
     const obj = { value: 0 };
     gsap.to(obj, {
@@ -74,15 +79,23 @@ function initCounterAnimations() {
       scrollTrigger: {
         trigger: elem,
         start: "top 70%",
-        toggleActions: "play none none none"
+        toggleActions: "play none none none",
       },
       onUpdate: () => {
         const current = Math.floor(obj.value);
-        elem.textContent = template.replace(/(\d+)/, current);
+        // formatujemy z odstępami co 3 cyfry
+        const formatted = current
+          .toString()
+          .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        elem.textContent = template.replace(numberRegex, formatted);
       },
       onComplete: () => {
-        elem.textContent = template.replace(/(\d+)/, endValue);
-      }
+        // na koniec wyświetlamy wartość docelową z poprawnym formatem
+        const formatted = endValue
+          .toString()
+          .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        elem.textContent = template.replace(numberRegex, formatted);
+      },
     });
   });
 }
